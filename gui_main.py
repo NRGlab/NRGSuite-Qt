@@ -11,7 +11,7 @@ from src.nrgrank import nrgrank_on_target
 from src.getcleft import spheres
 import general_functions
 from src.surfaces import run_Surfaces
-from src.isomif import run_isomif
+from src.isomif import IsoMIF
 from src.nrgrank import nrgrank_smiles_management
 from src.settings import run_settings
 import platform
@@ -38,7 +38,10 @@ def test_binary(binary_folder_path, operating_system):
     if operating_system == 'mac':
         for file in binary_files:
             subprocess.run(["chmod", "755", file])
-            result = subprocess.run([file], capture_output=True, text=True)
+            if file.endswith('isomif'):
+                result = subprocess.run([file, '-h'], capture_output=True, text=True)
+            else:
+                result = subprocess.run([file], capture_output=True, text=True)
             if result.returncode != 0 and result.returncode != -11:
                 print('Could not run: ', file)
 
@@ -175,7 +178,7 @@ class Controller:
             lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
 
         self.form.ISOMIF_run.clicked.connect(
-            lambda: run_isomif.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
+            lambda: IsoMIF.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
         ### Settings functions
         self.form.Settings_button_refresh_obj.clicked.connect(
             lambda: run_settings.refresh_objects(self.form)

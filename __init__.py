@@ -15,7 +15,7 @@ def install_package(package, main_folder_path):
         __import__(package.split('=')[0])
     except ImportError as e:
         if package == 'modeller':
-            print('Modeller install not detected. Please install via conda. The Modeller and NRGTen tabs will be unavailable')
+            print('MODELLER install not detected. Please install via conda. The MODELLER and NRGTen tabs will be unavailable')
         else:
             if package == 'Bio':
                 package = 'biopython'
