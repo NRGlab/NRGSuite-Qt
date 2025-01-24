@@ -3310,7 +3310,7 @@ color: white;
              <item>
               <widget class="QLabel" name="label_5">
                <property name="text">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Citing NRGSuite-QT: &lt;/span&gt;&lt;a href=&quot;...&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGSuite-Qt paper&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Citing NRGSuite-QT: &lt;/span&gt;&lt;a href=&quot;https://doi.org/10.1101/2025.01.23.634566&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGSuite-Qt paper&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="openExternalLinks">
                 <bool>true</bool>
@@ -3340,6 +3340,16 @@ color: white;
                 </widget>
                </item>
                <item>
+                <widget class="QLabel" name="label_6">
+                 <property name="text">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;....&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGRank&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="openExternalLinks">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
                 <widget class="QLabel" name="label_9">
                  <property name="text">
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://doi.org/10.1093/bioinformatics/btad608&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;Surfaces&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -3352,17 +3362,7 @@ color: white;
                <item>
                 <widget class="QLabel" name="label_7">
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://pubmed.ncbi.nlm.nih.gov/26504139/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;IsoMIF&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
-                 <property name="openExternalLinks">
-                  <bool>true</bool>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QLabel" name="label_6">
-                 <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;....&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGRank&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://pubs.acs.org/doi/10.1021/acs.jcim.5b00333&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;IsoMIF&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="openExternalLinks">
                   <bool>true</bool>
@@ -3372,7 +3372,7 @@ color: white;
                <item>
                 <widget class="QLabel" name="label_10">
                  <property name="text">
-                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;a href=&quot;https://academic.oup.com/bioinformatics/article/37/19/3369/6179106&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGTEN&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;&lt;a href=&quot;https://academic.oup.com/bioinformatics/article/37/19/3369/6179106&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0068da;&quot;&gt;NRGTEN&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="openExternalLinks">
                   <bool>true</bool>
