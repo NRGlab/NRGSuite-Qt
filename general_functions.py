@@ -54,8 +54,8 @@ def show_popup(form, dir_path,temp_path,save_file):
             msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
         if save_file:
-            msg.setWindowTitle('NRGSuite_QT results folder already exists')
-            msg.setText('NRGSuite_QT results folder already exists,\nDo you want to proceed?')
+            msg.setWindowTitle('NRGSuite-Qt results folder already exists')
+            msg.setText('NRGSuite-Qt results folder already exists,\nDo you want to proceed?')
             msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
 
         response = msg.exec_()
@@ -64,7 +64,7 @@ def show_popup(form, dir_path,temp_path,save_file):
                 form.temp_line_edit.setText(dir_path)
             if save_file:
                 sufix = 2
-                base_dir=os.path.join(dir_path, 'NRGSuite_QT_results')
+                base_dir=os.path.join(dir_path, 'NRGSuite_Qt_results')
                 while os.path.exists(f"{base_dir}_{sufix}"):
                     sufix += 1
                 new_dir = f"{base_dir}_{sufix}"
@@ -83,35 +83,36 @@ def show_popup(form, dir_path,temp_path,save_file):
         else:
             show_save_dialog(form, temp_path, save=save_file)
 
-def show_save_dialog(self,temp_path,save=1):
+def show_save_dialog(self, temp_path, save=1):
 
     options = QFileDialog.Options()
     options |= QFileDialog.DontUseNativeDialog
     dir_path = QFileDialog.getExistingDirectory(self, "Select Directory", "", options=options)
     if dir_path:
         if save:
-            if temp_path!=dir_path:
-                files=os.listdir(temp_path)
-                if os.path.isdir(os.path.join(dir_path, 'NRGSuite_QT_results')):
+            if temp_path != dir_path:
+                files = os.listdir(temp_path)
+                new_result_path = os.path.join(dir_path, 'NRGSuite_Qt_results')
+                if os.path.isdir(new_result_path):
                     show_popup(self, dir_path, temp_path, 1)
                 else:
-                    os.mkdir(os.path.join(dir_path, 'NRGSuite_QT_results'))
+                    os.mkdir(new_result_path)
                     for file_name in files:
                         source_file = os.path.join(temp_path,file_name)
-                        target_file = os.path.join(dir_path,'NRGSuite_QT_results',file_name)
+                        target_file = os.path.join(new_result_path, file_name)
                         if '.DS_Store' not in file_name:
                             if os.path.isdir(source_file):
                                 shutil.copytree(source_file, target_file)
                             else:
                                 shutil.copy2(source_file, target_file)
-                    self.temp_line_edit.setText(os.path.join(dir_path,'NRGSuite_QT_results'))
-                    cmd.save(os.path.join(dir_path,'NRGSuite_QT_results','load_project.pse'))
+                    self.temp_line_edit.setText(os.path.join(new_result_path))
+                    cmd.save(os.path.join(new_result_path, 'load_project.pse'))
             else:
                 cmd.save(os.path.join(dir_path,'load_project.pse'))
         if not save:
-            files=os.listdir(dir_path)
+            files = os.listdir(dir_path)
             for file in files:
-                if file=='load_project.pse':
+                if file == 'load_project.pse':
                     cmd.load(os.path.join(dir_path,'load_project.pse'))
                     self.temp_line_edit.setText(dir_path)
                     break

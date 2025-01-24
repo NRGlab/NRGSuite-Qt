@@ -7,7 +7,7 @@ import importlib.metadata
 
 def __init_plugin__(app):
     from pymol.plugins import addmenuitemqt
-    addmenuitemqt('NRGSuite_Qt', run_plugin_gui)
+    addmenuitemqt('NRGSuite-Qt', run_plugin_gui)
 
 
 def install_package(package, main_folder_path):
