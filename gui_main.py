@@ -42,7 +42,7 @@ def test_binary(binary_folder_path, operating_system):
                 result = subprocess.run([file, '-h'], capture_output=True, text=True)
             else:
                 result = subprocess.run([file], capture_output=True, text=True)
-            if result.returncode != 0 and result.returncode != -11:
+            if result.returncode != 0 and result.returncode != -11 and result.returncode != 24:
                 print('Could not run: ', file)
 
 
