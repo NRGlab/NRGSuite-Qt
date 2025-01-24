@@ -233,7 +233,7 @@ QPushButton:checked{
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap>src/LogoPackage/Logo1.png</pixmap>
+            <pixmap>assets/LogoPackage/Logo1.png</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
