@@ -31,6 +31,7 @@ def install_package(package, main_folder_path):
 
 
 def check_packages(install_dir):
+    print('Checking python modules')
     packages = ['nrgten', 'Bio', 'pandas', 'matplotlib', 'colour', 'scipy', 'numpy==2.0', 'numba', 'plotly', 'rdkit']
     for package in packages:
         install_package(package, install_dir)
@@ -39,9 +40,6 @@ def check_packages(install_dir):
 def run_plugin_gui():
     install_dir = os.path.dirname(__file__)
     sys.path.append(install_dir)
-
-    print('Checking python modules')
-
 
     global dialog
     if dialog is None:

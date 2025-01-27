@@ -4,24 +4,40 @@ import sys
 install_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(install_dir)
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdMolDescriptors
-from src.nrgrank.nrgrank_general_functions import get_params_dict
+from rdkit.Chem import AllChem, rdMolDescriptors, rdForceFieldHelpers, rdDistGeom
+from src.nrgrank.nrgrank_general_functions import get_params_dict, load_rad_dict
 from itertools import repeat
 from datetime import datetime
-from rdkit.Chem import rdDistGeom
 from src.nrgrank.process_ligands import preprocess_ligands_one_target
 import subprocess
 from pathlib import Path
-import json
+import csv
+import argparse
 
 
-def load_rad_dict(filepath):
-    with open(filepath, 'r') as file:
-        loaded_atom_data = json.load(file)
-    return loaded_atom_data
+def get_delimiter(file_path, bytes_to_read=4096):
+    sniffer = csv.Sniffer()
+    data = open(file_path, "r").read(bytes_to_read)
+    delimiter = sniffer.sniff(data).delimiter
+    return delimiter
 
 
-def generate_conformers(smiles_line, no_conformers, name_position):
+def read_column_from_csv(file_path, column_number, delimiter, has_header=True):
+    column_values = []
+    with open(file_path, mode='r', encoding='utf-8') as file:
+        reader = csv.reader(file, delimiter=delimiter)
+
+        if has_header:
+            next(reader, None)
+
+        for row in reader:
+            if len(row) > column_number:
+                column_values.append(row[column_number])
+
+    return column_values
+
+
+def generate_conformers(molecule_smile, molecule_name, no_conformers, mol_weight_max=None, heavy_atoms_min=None):
     etkdg = rdDistGeom.ETKDGv3()
     # === optional settings ===
     # etkdg.maxAttempts = 10
@@ -31,119 +47,170 @@ def generate_conformers(smiles_line, no_conformers, name_position):
     etkdg.randomSeed = 0xa700f
     etkdg.verbose = False
     etkdg.useRandomCoords = True  # Start with random coordinates
-    split_smiles_line = smiles_line.split()
-    smiles = split_smiles_line[0]
-    name = split_smiles_line[name_position]
-    molecule = Chem.MolFromSmiles(smiles)
+    molecule = Chem.MolFromSmiles(molecule_smile)
     try:
         frags = Chem.GetMolFrags(molecule, asMols=True, sanitizeFrags=False)
     except:
-        print('Error getting fragment for: ', smiles_line)
+        print('Error getting fragment for: ', molecule_name)
         frags = molecule
         if frags is None:
             return None
     molecule = max(frags, key=lambda frag: frag.GetNumAtoms())
-    # print(smiles_line)
     mol_weight = rdMolDescriptors.CalcExactMolWt(molecule)
     num_heavy_atoms = molecule.GetNumHeavyAtoms()
-    # print(f"Molecular weight of the molecule in Daltons: {mol_weight:.2f} Da")
-    if mol_weight > 1800 or num_heavy_atoms <= 3:
-        print("Molecular weight is over 1800 Da or the molecule has fewer than 3 heavy atoms: Ignoring")
-        return None
+    if mol_weight_max:
+        if mol_weight > mol_weight_max:
+            print(f"Molecular weight for {molecule_name} is over 1800 Da: Ignoring")
+            return None
+    if heavy_atoms_min:
+         if num_heavy_atoms <= heavy_atoms_min:
+            print(f"{molecule_name} has fewer than 3 heavy atoms: Ignoring")
+            return None
+
+    mol = Chem.AddHs(molecule, addCoords=True)
+    if no_conformers == 1:
+        try:
+            AllChem.EmbedMolecule(mol, params=etkdg)
+        except Exception as e:
+            print('=====================================')
+            print(f'Error: {e}\n Molecule: {molecule_name}\n')
+            print('=====================================')
+            return None
     else:
-        mol = Chem.AddHs(molecule, addCoords=True)
-        if no_conformers == 1:
-            try:
-                AllChem.EmbedMolecule(mol, params=etkdg)
-            except Exception as e:
-                print('=====================================')
-                print(f'Error: {e}\n Molecule: {smiles_line}\n')
-                print('=====================================')
-                return None
-        else:
-            AllChem.EmbedMultipleConfs(mol, no_conformers, params=etkdg)
-        mol.SetProp("_Name", name)
+        AllChem.EmbedMultipleConfs(mol, no_conformers, params=etkdg)
+    mol.SetProp("_Name", molecule_name)
+
     return mol
 
 
-def read_params():
-    smiles_path = sys.argv[1]
-    optimize = sys.argv[2]
-    custom_output_file_path = sys.argv[3]
-    try:
-        custom_deps_path = sys.argv[4]
-    except IndexError:
-        custom_deps_path = None
-    convert = True
-    preprocess = True
-    main(smiles_path, optimize, custom_output_file_path, preprocess, convert, custom_deps_path)
+def read_args():
+    parser = argparse.ArgumentParser(description="Process and convert chemical data.")
 
+    parser.add_argument(
+        "-s",
+        "--smiles_path",
+        type=str,
+        help="Path to the SMILES file."
+    )
+    parser.add_argument(
+        "-sc",
+        "--smiles_column_number",
+        type=int,
+        required=True,
+        help="Number of the column containing smiles (Starts at 0). Example: -1 for last column.",
+    )
+    parser.add_argument(
+        "-nc",
+        "--name_column_number",
+        type=int,
+        required=True,
+        help="Number of the column containing names (Starts at 0). Example: -1 for last column.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output_folder_path",
+        type=str,
+        default=None,
+        help="Path to the custom output folder. Use 'None' if not specified.",
+    )
+    parser.add_argument(
+        "-d",
+        "--deps_path",
+        type=str,
+        default=None,
+        help="Path to custom dependencies. Optional.",
+    )
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Enable optimization. Defaults to False.",
+    )
+    parser.add_argument(
+        "-dc",
+        "--no_convert",
+        action="store_false",
+        dest="convert",
+        help="Disable conversion from SDF to MOL2. Defaults to True.",
+    )
+    parser.add_argument(
+        "-p",
+        "--no_preprocess",
+        action="store_false",
+        dest="preprocess",
+        help="Disable preprocessing. Defaults to True.",
+    )
 
-def main(smiles_path, optimize, custom_output_file_path, preprocess, convert, custom_deps_path):
-    print("Started generating conformers @ ", datetime.now())
+    args = parser.parse_args()
+
+    main(
+        smiles_path=args.smiles_path,
+        smiles_column_number=args.smiles_column_number,
+        name_column_number=args.name_column_number,
+        output_folder_path=args.output_folder_path,
+        deps_path=args.deps_path,
+        optimize=args.optimize,
+        convert=args.convert,
+        preprocess=args.preprocess,
+    )
+
+def main(smiles_path, smiles_column_number, name_column_number, output_folder_path, deps_path, optimize, convert, preprocess):
     root_software_path = Path(__file__).resolve().parents[1]
     os.chdir(root_software_path)
-    name_position = -1
-    print("Dont forget to specify in what column the name is for the smiles file")
-    print("Path to smiles: ", smiles_path)
-    config_path = os.path.join(root_software_path, "deps/config.txt")
-    if custom_deps_path:
-        config_path = os.path.join(custom_deps_path, "config.txt")
-    params_dict = get_params_dict(config_path)
-    conf_num = params_dict["CONFORMER_NUMBER"]
-    if custom_output_file_path != "False":
-        sdf_output_file = custom_output_file_path
-        output_folder = os.path.dirname(sdf_output_file)
-        if not os.path.isdir(output_folder):
-            os.mkdir(output_folder)
-    else:
-        output_folder = os.path.join(os.path.dirname(smiles_path), f"{os.path.basename(smiles_path).split('.')[0]}_conformers")
-        if not os.path.isdir(output_folder):
-            os.mkdir(output_folder)
+    if not deps_path:
+        deps_path = os.path.join(root_software_path, 'deps')
+    config_path = os.path.join(deps_path, "config.txt")
 
-        end = "_not_opt"
-        if optimize == "yes":
-            end = "_opt"
-        sdf_output_file = os.path.join(output_folder, f"{os.path.splitext(os.path.basename(smiles_path))[0]}_{conf_num}_conf{end}.sdf")
+    params_dict = get_params_dict(config_path)
+    conf_num = params_dict["CONFORMERS_PER_MOLECULE"]
+    if conf_num == 0:
+        exit("number of conformers is 0")
+    mol_weight_max = params_dict["MOLECULAR_WEIGHT_MAX"]
+    if mol_weight_max == 0:
+        mol_weight_max = None
+    heavy_atoms_min = params_dict["NUMBER_HEAVY_ATOMS_MIN"]
+    if heavy_atoms_min ==0:
+        heavy_atoms_min = None
+
+    if not output_folder_path:
+        output_folder_path = os.path.join(os.path.dirname(smiles_path), f"{os.path.basename(smiles_path).split('.')[0]}_conformers")
+    if not os.path.isdir(output_folder_path):
+        os.mkdir(output_folder_path)
+
+    end = ""
+    if optimize == "yes":
+        end = "_optimized"
+    sdf_output_file = os.path.join(output_folder_path, f"{os.path.splitext(os.path.basename(smiles_path))[0]}_{conf_num}_conf{end}.sdf")
     mol2_output_file = os.path.splitext(sdf_output_file)[0] + '.mol2'
 
     writer = AllChem.SDWriter(sdf_output_file)
-    if conf_num == 0:
-        exit("number of conformers is 0")
-    with open(smiles_path) as f:
-        lines = f.readlines()
-        if lines[0].startswith('smiles'):
-            lines = lines[1:]
+
+    delimiter = get_delimiter(smiles_path, bytes_to_read=4096)
+    molecule_smiles_list = read_column_from_csv(smiles_path, smiles_column_number, delimiter, has_header=True)
+    molecule_name_list = read_column_from_csv(smiles_path, name_column_number, delimiter, has_header=True)
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        for mol in executor.map(generate_conformers, lines, repeat(conf_num), repeat(name_position)):
+        for mol in executor.map(generate_conformers,molecule_smiles_list, molecule_name_list, repeat(conf_num), repeat(mol_weight_max), repeat(heavy_atoms_min)):
             if mol is not None:
                 for cid in range(mol.GetNumConformers()):
                     if optimize == "yes":
                         Chem.rdForceFieldHelpers.MMFFOptimizeMoleculeConfs(mol, cid)
                     mol = Chem.RemoveHs(mol)
                     writer.write(mol, cid)
-
-    print("done with writter")
     AllChem.SDWriter.close(writer)
     print("Finished generating conformers @ ", datetime.now())
+
     if convert:
         print("converting to mol2")
         open_babel_command = f"obabel \"{sdf_output_file}\" -O \"{mol2_output_file}\" ---errorlevel 1"
         print(f'obabel command: {open_babel_command}')
         subprocess.run(open_babel_command, shell=True, check=True)
-        print("removing")
         os.remove(sdf_output_file)
+
     if preprocess:
-        rad_dict_path = os.path.join(root_software_path, "deps", "atom_type_radius.json")
-        if custom_deps_path:
-            rad_dict_path = os.path.join(custom_deps_path, "atom_type_radius.json")
+        rad_dict_path = os.path.join(deps_path, "atom_type_radius.json")
         rad_dict = load_rad_dict(rad_dict_path)
-        preprocess_ligands_one_target(rad_dict, conf_num, output_folder,
-                                      'single_file', mol2_output_file,
-                                      None)
-        # process_ligands.main("single_file", None, output_folder, mol2_output_file, None)
+        preprocess_ligands_one_target(mol2_output_file, rad_dict, conf_num)
 
 
 if __name__ == '__main__':
-    read_params()
+    read_args()
