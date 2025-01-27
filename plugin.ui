@@ -310,7 +310,7 @@ QPushButton:checked{
          <string notr="true">font-size:20;</string>
         </property>
         <property name="currentIndex">
-         <number>8</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="getcleft_page">
          <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -768,7 +768,7 @@ QFrame {
              <enum>QTabWidget::Rounded</enum>
             </property>
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <property name="usesScrollButtons">
              <bool>false</bool>
@@ -953,8 +953,15 @@ QFrame {
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
-                      <widget class="QLineEdit" name="nrgrank_add_ligand_file_path"/>
+                     <item row="2" column="1">
+                      <widget class="QPushButton" name="nrgrank_button_ligandset_add">
+                       <property name="enabled">
+                        <bool>true</bool>
+                       </property>
+                       <property name="text">
+                        <string>Add</string>
+                       </property>
+                      </widget>
                      </item>
                      <item row="0" column="2">
                       <widget class="QPushButton" name="nrgrank_add_ligandset_button">
@@ -963,13 +970,23 @@ QFrame {
                        </property>
                       </widget>
                      </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="nrgrank_add_ligand_file_path"/>
+                     </item>
                      <item row="1" column="1">
-                      <widget class="QPushButton" name="nrgrank_button_ligandset_add">
-                       <property name="enabled">
-                        <bool>true</bool>
-                       </property>
+                      <widget class="QLineEdit" name="smiles_column_name">
                        <property name="text">
-                        <string>Add</string>
+                        <string>Smiles</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_18">
+                       <property name="text">
+                        <string>Smiles column name</string>
                        </property>
                       </widget>
                      </item>
