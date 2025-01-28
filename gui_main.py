@@ -168,12 +168,12 @@ class Controller:
             lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_2, self.form.output_box, add_none=1))
 
         self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_1, self.form.ISOMIF_select_target_object_1.currentText(), self.form.output_box, show_all_objects=self.form.show_all_obj_bd_checkbox.isChecked()))
+            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_1, self.form.ISOMIF_select_target_object_1.currentText(), self.form.output_box, show_all_objects=True))
         self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(
             lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
 
         self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(
-            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_2, self.form.ISOMIF_select_target_object_2.currentText(), self.form.output_box, add_none=True, show_all_objects=self.form.show_all_obj_bd_checkbox.isChecked()))
+            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_2, self.form.ISOMIF_select_target_object_2.currentText(), self.form.output_box, add_none=True, show_all_objects=True))
         self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(
             lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
 

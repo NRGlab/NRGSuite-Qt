@@ -206,13 +206,10 @@ class NRGRankThread(QThread):
 
     def stop(self):
         self.is_running = False
-
         if self.executor:
             self.executor.shutdown(wait=False)
-
         if self.process_target_process and self.process_target_process.poll() is None:
             self.process_target_process.terminate()
-
         for process in self.processes:
             if process.poll() is None:
                 process.terminate()

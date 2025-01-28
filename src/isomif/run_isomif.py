@@ -21,7 +21,7 @@ def get_residue_string(selection_name):
 
 
 def run_mif_preparation(isomif_temp_result_path, target, ligand_name, cleft_name, output_box, mif_binary_path,
-                mifview_binary_path, python_version, isomif_deps_path):
+                        mifview_binary_path, python_version, isomif_deps_path):
     target_file = os.path.join(isomif_temp_result_path, f'{target}.pdb')
     cmd.save(target_file, target)
     cleft_save_path = os.path.join(isomif_temp_result_path, f'{cleft_name}.pdb')
@@ -31,10 +31,11 @@ def run_mif_preparation(isomif_temp_result_path, target, ligand_name, cleft_name
         ligand_residue_name = get_residue_string(ligand_name)
     run_mif(target, output_box, cleft_save_path, mif_binary_path, mifview_binary_path, isomif_temp_result_path,
             python_version, ligand_residue_name, isomif_deps_path)
+    return
 
 
 def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary_path, isomif_temp_result_path, python_version, lig_str, deps):
-    output_message(output_box, 'Running IsoMIF...', 'valid')
+    output_message(output_box, 'Running MIF...', 'valid')
 
     target_file = os.path.join(isomif_temp_result_path,f'{target}.pdb')
     cmd.create(f'{target}_h', target)
@@ -49,7 +50,6 @@ def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary
              command_mif += '-'
     print(command_mif)
     os.system(command_mif)
-
     command_view=f'python{python_version} {mifView_binary_path} -m {target_file[:-4]}_h.mif -o {isomif_temp_result_path}'
     os.system(command_view)
     cmd.load(os.path.splitext(target_file)[0]+'_h.pml')

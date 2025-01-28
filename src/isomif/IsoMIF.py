@@ -111,11 +111,11 @@ def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
     target_2 = form.ISOMIF_select_target_object_2.currentText()
     cleft_name_2 = form.ISOMIF_select_cleft_object_2.currentText()
     ligand_name_2 = form.ISOMIF_select_ligand_object_2.currentText()
-
     if target_1:
         if cleft_name_1:
             run_mif_preparation(isomif_temp_result_path, target_1, ligand_name_1, cleft_name_1, output_box,
                         mif_binary_path, mifView_binary_path, python_version, isomif_deps_path)
+
     if target_2 != "None":
         if cleft_name_2 != "None":
             run_mif_preparation(isomif_temp_result_path, target_2, ligand_name_2, cleft_name_2, output_box,

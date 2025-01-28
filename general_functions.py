@@ -208,8 +208,6 @@ def refresh_dropdown(dropdown_to_refresh, output_box, filter_for='', no_warning=
 
 
 def refresh_folder(folder_path, dropdown_to_refresh, ignore_defaults=False):
-    # print('===========')
-    # print(folder_path)
     folders = next(os.walk(folder_path))[1]
     if ignore_defaults:
         filtered_folders = []
@@ -226,7 +224,6 @@ def refresh_folder(folder_path, dropdown_to_refresh, ignore_defaults=False):
 def folder_browser(text_window, ligand_set_path, file_extension):
     smile_file_path = QFileDialog.getOpenFileName(None, 'Select a File', ligand_set_path, file_extension)[0]
     if smile_file_path:
-        print(smile_file_path)
         text_window.setText(smile_file_path)
 
 
