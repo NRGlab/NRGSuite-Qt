@@ -25,9 +25,9 @@ def install_package(package, main_folder_path):
             if package == 'nrgten':
                 distribution = importlib.metadata.distribution(package)
                 shutil.copy(os.path.join(main_folder_path, 'deps', 'nrgten', 'amino_acids.atomtypes'),
-                            os.path.join(str(distribution.locate_file('')), 'nrgten' 'config' 'amino_acids.atomtypes'))
+                            os.path.join(str(distribution.locate_file('')), 'nrgten', 'config', 'amino_acids.atomtypes'))
                 shutil.copy(os.path.join(main_folder_path, 'deps', 'nrgten', 'amino_acids.masses'),
-                            os.path.join(str(distribution.locate_file('')), 'nrgten' 'config' 'amino_acids.masses'))
+                            os.path.join(str(distribution.locate_file('')), 'nrgten', 'config', 'amino_acids.masses'))
 
 
 def check_packages(install_dir):
@@ -46,6 +46,12 @@ def run_plugin_gui():
         check_packages(install_dir)
         import gui_main
         dialog = gui_main.NRGSuitePlugin()
+        
+    distribution = importlib.metadata.distribution('nrgten')
+    if not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon.exe')):
+        shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon.exe'),
+                    os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon.exe'))
+
     dialog.show()
     dialog.raise_()
 
