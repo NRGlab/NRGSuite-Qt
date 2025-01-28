@@ -11,7 +11,7 @@ from src.nrgrank import nrgrank_on_target
 from src.getcleft import spheres
 import general_functions
 from src.surfaces import run_Surfaces
-from src.isomif import IsoMIF
+from src.isomif import run_isomif
 from src.nrgrank import nrgrank_smiles_management
 from src.settings import run_settings
 import platform
@@ -178,7 +178,7 @@ class Controller:
             lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
 
         self.form.ISOMIF_run.clicked.connect(
-            lambda: IsoMIF.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
+            lambda: run_isomif.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
         ### Settings functions
         self.form.Settings_button_refresh_obj.clicked.connect(
             lambda: run_settings.refresh_objects(self.form)
@@ -260,7 +260,7 @@ class NRGSuitePlugin(QWidget):
         self.surfaces_output_path = os.path.join(self.form.temp_line_edit.text(), 'Surfaces')
         self.modeller_save_path = os.path.join(self.form.temp_line_edit.text(), 'modeller')
         self.nrgten_save_path = os.path.join(self.form.temp_line_edit.text(), 'NRGTEN')
-        self.isomif_save_path = os.path.join(self.form.temp_line_edit.text(), 'ISOMIF')
+        self.isomif_save_path = os.path.join(self.form.temp_line_edit.text(), 'IsoMIF')
         self.obj_manager_save_path = os.path.join(self.form.temp_line_edit.text(), 'Object_manager')
 
     def manage_dirs(self):

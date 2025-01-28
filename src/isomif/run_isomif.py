@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 import plotly.graph_objects as go
-
+import platform
 
 def get_residue_string(selection_name):
     residue_info = {'resn': '', 'resi': '', 'chain': ''}
@@ -50,7 +50,10 @@ def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary
              command_mif += '-'
     print(command_mif)
     os.system(command_mif)
-    command_view=f'python{python_version} {mifView_binary_path} -m {target_file[:-4]}_h.mif -o {isomif_temp_result_path}'
+    python_command = 'python'
+    if platform.system() != 'Windows':
+        python_command += python_version
+    command_view=f'{python_command} {mifView_binary_path} -m {target_file[:-4]}_h.mif -o {isomif_temp_result_path}'
     os.system(command_view)
     cmd.load(os.path.splitext(target_file)[0]+'_h.pml')
     cmd.delete(target+'_h')
@@ -71,12 +74,13 @@ def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary
 def run_isomif(target,target_2, isomif_binary_path, isoMifView_binary_path, isomif_temp_result_path, python_version):
 
     command_isomif = f'{isomif_binary_path} -p1 {os.path.join(isomif_temp_result_path,target+"_h.mif")} -p2 {os.path.join(isomif_temp_result_path,target_2+"_h.mif")} -o {os.path.join(isomif_temp_result_path,"iso_")} -c 2'
-    print(command_isomif)
     os.system(command_isomif)
 
     isomif_file = os.path.join(isomif_temp_result_path,f'iso_{target}_h_match_{target_2}_h.isomif')
-    command_isomifView = [f'python{python_version}',  isoMifView_binary_path, '-m', isomif_file, '-o', os.path.join(isomif_temp_result_path,"view_"), '-g', '2']
-    print(command_isomifView)
+    python_command = 'python'
+    if platform.system() != 'Windows':
+        python_command = f'python{python_version}'
+    command_isomifView = [python_command,  isoMifView_binary_path, '-m', isomif_file, '-o', os.path.join(isomif_temp_result_path,"view_"), '-g', '2']
     _process = subprocess.Popen(command_isomifView)
     while _process.poll() is None:
         time.sleep(0.1)
@@ -111,11 +115,11 @@ def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
     target_2 = form.ISOMIF_select_target_object_2.currentText()
     cleft_name_2 = form.ISOMIF_select_cleft_object_2.currentText()
     ligand_name_2 = form.ISOMIF_select_ligand_object_2.currentText()
-
     if target_1:
         if cleft_name_1:
             run_mif_preparation(isomif_temp_result_path, target_1, ligand_name_1, cleft_name_1, output_box,
                         mif_binary_path, mifView_binary_path, python_version, isomif_deps_path)
+
     if target_2 != "None":
         if cleft_name_2 != "None":
             run_mif_preparation(isomif_temp_result_path, target_2, ligand_name_2, cleft_name_2, output_box,

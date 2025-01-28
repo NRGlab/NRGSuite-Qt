@@ -3,6 +3,7 @@ import sys
 import subprocess
 import shutil
 import importlib.metadata
+import platform
 
 
 def __init_plugin__(app):
@@ -48,9 +49,10 @@ def run_plugin_gui():
         dialog = gui_main.NRGSuitePlugin()
         
     distribution = importlib.metadata.distribution('nrgten')
-    if not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon.exe')):
+    print(distribution.locate_file(''))
+    if platform.system() == 'Windows' and not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon.exe')):
         shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon.exe'),
-                    os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon.exe'))
+                    os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))
 
     dialog.show()
     dialog.raise_()
