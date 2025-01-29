@@ -11,6 +11,8 @@ import numpy as np
 from scipy.stats import norm
 import plotly.graph_objects as go
 import platform
+from pathlib import Path
+
 
 def get_residue_string(selection_name):
     residue_info = {'resn': '', 'resi': '', 'chain': ''}
@@ -18,6 +20,11 @@ def get_residue_string(selection_name):
     residue_string = f"{residue_info['resn']}{residue_info['resi']}{residue_info['chain']}-"
 
     return residue_string
+
+def fix_path(path):
+    path = Path(path)
+    normalized_path = path.as_posix()
+    return normalized_path
 
 
 def run_mif_preparation(isomif_temp_result_path, target, ligand_name, cleft_name, output_box, mif_binary_path,
@@ -72,15 +79,18 @@ def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary
 
 
 def run_isomif(target,target_2, isomif_binary_path, isoMifView_binary_path, isomif_temp_result_path, python_version):
-
-    command_isomif = f'{isomif_binary_path} -p1 {os.path.join(isomif_temp_result_path,target+"_h.mif")} -p2 {os.path.join(isomif_temp_result_path,target_2+"_h.mif")} -o {os.path.join(isomif_temp_result_path,"iso_")} -c 2'
+    path_target_1 = fix_path(os.path.join(isomif_temp_result_path,target+"_h.mif"))
+    path_target_2 = fix_path(os.path.join(isomif_temp_result_path,target_2+"_h.mif"))
+    output_path = fix_path(os.path.join(isomif_temp_result_path,"iso_"))
+    command_isomif = f'{isomif_binary_path} -p1 {path_target_1} -p2 {path_target_2} -o {output_path} -c 2'
+    print(command_isomif)
     os.system(command_isomif)
 
-    isomif_file = os.path.join(isomif_temp_result_path,f'iso_{target}_h_match_{target_2}_h.isomif')
+    isomif_file = os.path.join(isomif_temp_result_path, f'iso_{target}_h_match_{target_2}_h.isomif')
     python_command = 'python'
     if platform.system() != 'Windows':
         python_command = f'python{python_version}'
-    command_isomifView = [python_command,  isoMifView_binary_path, '-m', isomif_file, '-o', os.path.join(isomif_temp_result_path,"view_"), '-g', '2']
+    command_isomifView = [python_command,  isoMifView_binary_path, '-m', fix_path(isomif_file), '-o', fix_path(os.path.join(isomif_temp_result_path,"view_")), '-g', '2']
     _process = subprocess.Popen(command_isomifView)
     while _process.poll() is None:
         time.sleep(0.1)
