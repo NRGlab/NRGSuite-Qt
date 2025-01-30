@@ -136,14 +136,14 @@ with open(matchIn, 'r') as f:
         line = line.strip()
         if "mif_file_1:" in line:
             if not m1Path:
-                m1Path = line.split(":")[1].strip()
+                m1Path = line.split(":", 1)[1].strip()
             if not p1Path:
                 p1Path = m1Path.replace(".mif", "_cpy.pdb")
             mif1 = os.path.basename(m1Path)
 
         if "mif_file_2:" in line:
             if not m2Path:
-                m2Path = line.split(":")[1].strip()
+                m2Path = line.split(":", 1)[1].strip()
             if not p2Path:
                 p2Path = m2Path.replace(".mif", "_cpy.pdb")
             mif2 = os.path.basename(m2Path)
