@@ -21,7 +21,6 @@ def install_package(package, main_folder_path):
             if package == 'Bio':
                 package = 'biopython'
             print(f"Installing {package}...")
-            # TODO: use subprocess.call with creationflags set to CREATE_NO_WINDOW for windows because nrgten fails
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
             if package == 'nrgten':
                 distribution = importlib.metadata.distribution(package)
@@ -49,7 +48,6 @@ def run_plugin_gui():
         dialog = gui_main.NRGSuitePlugin()
         
     distribution = importlib.metadata.distribution('nrgten')
-    print(distribution.locate_file(''))
     if platform.system() == 'Windows' and not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon')):
         shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon.exe'),
                     os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))
