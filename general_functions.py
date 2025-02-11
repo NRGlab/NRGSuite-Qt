@@ -213,7 +213,7 @@ def refresh_folder(folder_path, dropdown_to_refresh, ignore_defaults=False):
         filtered_folders = []
         for folder in folders:
             filenames = next(os.walk(os.path.join(folder_path, folder)), (None, None, []))[2]
-            if '.default' not in filenames:
+            if 'default.txt' not in filenames:
                 filtered_folders.append(folder)
         folders = filtered_folders
     folders = sorted([item.replace('_', ' ') for item in folders])
