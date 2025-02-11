@@ -5,10 +5,10 @@ install_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(install_dir)
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdMolDescriptors, rdForceFieldHelpers, rdDistGeom
-from src.nrgrank.nrgrank_general_functions import get_params_dict, load_rad_dict
+from srcs.nrgrank.nrgrank_general_functions import get_params_dict, load_rad_dict
 from itertools import repeat
 from datetime import datetime
-from src.nrgrank.process_ligands import preprocess_ligands_one_target
+from srcs.nrgrank.process_ligands import preprocess_ligands_one_target
 import subprocess
 from pathlib import Path
 import csv
