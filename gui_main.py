@@ -3,28 +3,29 @@ import sys
 
 install_dir = os.path.dirname(__file__)
 sys.path.append(install_dir)
+
 import shutil
 import subprocess
-from src.flexaid.flexaid import FlexAIDManager, stop_simulation, abort_simulation, pause_resume_simulation, flexaid_show_ligand_from_table
-from src.getcleft import getcleft
-from src.nrgrank import nrgrank_on_target
-from src.getcleft import spheres
+from srcs.flexaid.flexaid import FlexAIDManager, stop_simulation, abort_simulation, pause_resume_simulation, flexaid_show_ligand_from_table
+from srcs.getcleft import getcleft
+from srcs.nrgrank import nrgrank_on_target
+from srcs.getcleft import spheres
 import general_functions
-from src.surfaces import run_Surfaces
-from src.isomif import run_isomif
-from src.nrgrank import nrgrank_smiles_management
-from src.settings import run_settings
+from srcs.surfaces import run_Surfaces
+from srcs.isomif import run_isomif
+from srcs.nrgrank import nrgrank_smiles_management
+from srcs.settings import run_settings
 import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.uic import loadUi
-from src.nrgten import run_NRGTEN
+from srcs.nrgten import run_NRGTEN
 try:
     import modeller
 except ImportError:
     print('Modeller not installed.')
 else:
-    from src.modeller import run_modeller
+    from srcs.nrgsuite_modeller import run_modeller
 # TODO: when showing surfaces result hide everything else
 # TODO: clickable results in nrgrank table
 

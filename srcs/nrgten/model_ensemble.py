@@ -2,7 +2,7 @@ from modeller import Environ, Model, Alignment
 from modeller.automodel import *
 from modeller.selection import selection
 from pymol import cmd
-from src.surfaces.clean_structure import main as clean_structure
+from srcs.surfaces.clean_structure import main as clean_structure
 from PyQt5.QtWidgets import QApplication
 import os
 

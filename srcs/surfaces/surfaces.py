@@ -1,10 +1,10 @@
 import os
 from pymol import cmd
 from general_functions import process_flexaid_result
-from src.surfaces.ligand_atomtypes import add_pdb
-from src.surfaces.clean_structure import main as clean_structure
-from src.surfaces.surface_cont_lig import main as surface_cont_lig
-from src.surfaces.pymol_image_surfaces_lig import generate_session
+from srcs.surfaces.ligand_atomtypes import add_pdb
+from srcs.surfaces.clean_structure import main as clean_structure
+from srcs.surfaces.surface_cont_lig import main as surface_cont_lig
+from srcs.surfaces.pymol_image_surfaces_lig import generate_session
 #TODO: hide everything when loading result
 
 def create_ligand_file(pdb_file_name, lig_path):

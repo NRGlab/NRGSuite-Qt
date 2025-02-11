@@ -85,7 +85,7 @@ class GenerateConformerThread(QThread):
     def run(self):
         try:
             self.message_signal.emit('Starting to generate conformers', 'valid')
-            generate_conformer_path = os.path.join(self.install_dir, 'src', 'nrgrank', 'generate_conformers.py')
+            generate_conformer_path = os.path.join(self.install_dir, 'srcs', 'nrgrank', 'generate_conformers.py')
             conformer_folder_path = os.path.splitext(self.smiles_path)[0] + '_conformers'
             smile_file_name = os.path.splitext(os.path.basename(self.smiles_path))[0]
             mol2_path = os.path.join(conformer_folder_path, smile_file_name + '_1_conf.mol2')

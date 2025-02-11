@@ -1,13 +1,13 @@
 from general_functions import get_residue_info
 import os
 import matplotlib.pyplot as plt
-from src.surfaces.ligand_atomtypes import add_pdb
+from srcs.surfaces.ligand_atomtypes import add_pdb
 from general_functions import process_flexaid_result
-from src.surfaces.clean_structure import main as clean_structure
-from src.surfaces.surface_cont_lig import main as surface_cont_lig
-from src.surfaces.surface_cont import main as surface_cont
-from src.surfaces.pymol_image_surfaces_lig import generate_session
-from src.surfaces.pymol_image_surfaces import generate_session as generate_session_ppi
+from srcs.surfaces.clean_structure import main as clean_structure
+from srcs.surfaces.surface_cont_lig import main as surface_cont_lig
+from srcs.surfaces.surface_cont import main as surface_cont
+from srcs.surfaces.pymol_image_surfaces_lig import generate_session
+from srcs.surfaces.pymol_image_surfaces import generate_session as generate_session_ppi
 from pymol import cmd
 import pandas as pd
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor

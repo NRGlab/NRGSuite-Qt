@@ -1,8 +1,8 @@
 from nrgten.encom import ENCoM
 from nrgten.atom import Atom
 from pymol import cmd
-from src.surfaces.ligand_atomtypes import add_pdb
-from src.surfaces.run_Surfaces import create_ligand_file, flex_res, compare_residues
+from srcs.surfaces.ligand_atomtypes import add_pdb
+from srcs.surfaces.run_Surfaces import create_ligand_file, flex_res, compare_residues
 from general_functions import process_flexaid_result
 import os
 import numpy as np
@@ -361,7 +361,7 @@ def conformational_ensemble(target, modes_list, step, max_conf, max_disp, opt, m
     model.build_conf_ensemble(modes_list, ensemble_path, step=float(step), max_displacement=float(max_disp),
                               max_conformations=int(max_conf))
     if opt:
-        from src.nrgten.model_ensemble import model_states
+        from srcs.nrgten.model_ensemble import model_states
         model_states(ensemble_path, target, temp_path, main_folder_path,form)
 
     else:

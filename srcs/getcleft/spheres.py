@@ -1,6 +1,6 @@
 from pymol import cmd
 import numpy as np
-from src.getcleft import wizard
+from srcs.getcleft import wizard
 from general_functions import read_coords_cleft, output_message
 import os
 

@@ -2,7 +2,7 @@ from pymol import cmd
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor
 import general_functions
 import os
-from src.surfaces import run_Surfaces
+from srcs.surfaces import run_Surfaces
 
 
 def refresh_objects(form):

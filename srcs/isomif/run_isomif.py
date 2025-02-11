@@ -112,8 +112,8 @@ def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
 
     mif_binary_path = os.path.join(binary_folder_path, f'mif{binary_suffix}')
     isomif_binary_path = os.path.join(binary_folder_path, f'isomif{binary_suffix}')
-    mifView_binary_path = os.path.join(install_dir,'src','isomif', f'mifView.py')
-    isoMifView_binary_path = os.path.join(install_dir,'src','isomif', f'isoMifView.py')
+    mifView_binary_path = os.path.join(install_dir,'srcs','isomif', f'mifView.py')
+    isoMifView_binary_path = os.path.join(install_dir,'srcs','isomif', f'isoMifView.py')
     isomif_deps_path = os.path.join(install_dir,'deps','isomif')
     temp_path = form.temp_line_edit.text()
     isomif_temp_result_path=os.path.join(temp_path,'IsoMIF')

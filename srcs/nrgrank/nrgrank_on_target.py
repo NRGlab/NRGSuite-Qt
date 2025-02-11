@@ -252,7 +252,7 @@ class NRGRankThread(QThread):
         self.message_signal.emit("=========== NRGRank ===========")
         self.message_signal.emit(f"Processing Target")
         self.process_target_process = subprocess.Popen([sys.executable,
-                                                        os.path.join(self.install_dir, 'src', 'nrgrank', 'process_target.py'),
+                                                        os.path.join(self.install_dir, 'srcs', 'nrgrank', 'process_target.py'),
                                                         '-p', self.nrgrank_output_path,
                                                         '-t', self.binding_site_name,
                                                         '-o',
@@ -298,7 +298,7 @@ class NRGRankThread(QThread):
         for current_ligand_number in range(self.starting_ligand, total_number_ligands, self.step):
             last_ligand = min(current_ligand_number + self.step, total_number_ligands)
             temp_command = [sys.executable,
-                            os.path.join(self.install_dir, 'src', 'nrgrank', 'nrgrank.py'),
+                            os.path.join(self.install_dir, 'srcs', 'nrgrank', 'nrgrank.py'),
                             '-p', nrgrank_target_folder,
                             '-s', f'{current_ligand_number},{last_ligand}',
                             '-l', ligand_path,
