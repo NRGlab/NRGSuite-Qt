@@ -21,7 +21,7 @@ def install_package(package, main_folder_path):
             if package == 'Bio':
                 package = 'biopython'
             print(f"Installing {package}...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            subprocess.check_call([sys.executable.replace('pythonw', 'python'), "-m", "pip", "install", package])
             if package == 'nrgten':
                 distribution = importlib.metadata.distribution(package)
                 shutil.copy(os.path.join(main_folder_path, 'deps', 'nrgten', 'amino_acids.atomtypes'),
