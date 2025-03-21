@@ -3,7 +3,8 @@ from modeller import *
 from modeller.optimizers import MolecularDynamics, ConjugateGradients
 from modeller.automodel import autosched
 from PyQt5.QtWidgets import QWidget
-
+import time
+from general_functions import output_message
 
 from pymol import cmd
 import os
@@ -177,7 +178,7 @@ def check_all(form):
 
 # Example Usage
 def model_mutations(form, temp_path):
-    # Specify input PDB file, residue number, and new residue
+    start_time = time.time()
     target = form.Modeller_select_object.currentText()
     res_list = form.Modeller_select_residue.currentText()
     mutation_list = [form.Modeller_checkBox.isChecked(),
@@ -215,4 +216,9 @@ def model_mutations(form, temp_path):
                         cmd.load(target_file[:-4]+amino_list[res_1]+res[1]+'.pdb',target+'_mutants',state=count)
                         count+=1
     cmd.group("Single Mutants",target+'_mutants')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    output_message(form.output_box, '=========== Single Mutations ===========', 'valid')
+    output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+    output_message(form.output_box, '=========== END Single Mutations ===========', 'valid')
 

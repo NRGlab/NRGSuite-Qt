@@ -197,9 +197,9 @@ class FlexAIDManager:
             worker.quit()
             worker.wait()
 
-
-    def flexaid_end_processes(self):
-        general_functions.output_message(self.form.output_box, f"=========== FlexAID ===========", 'valid')
+    def flexaid_end_processes(self, execution_time):
+        general_functions.output_message(self.form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+        general_functions.output_message(self.form.output_box, f"=========== END FlexAID ===========", 'valid')
         self.quit_workers()
         self.toggle_buttons(False)
         self.final_table_update()
@@ -283,7 +283,7 @@ class FileUpdaterThread(QThread):
 
 
 class FlexAIDWorkerThread(QThread):
-    finished = pyqtSignal()
+    finished = pyqtSignal(float)
 
     def __init__(self, binary_folder_path, binary_suffix, install_dir, flexaid_result_path, flexaid_temp_path,
                  target_save_path, ligand_save_path, binding_site_path, setting_dictionary):
@@ -391,10 +391,12 @@ class FlexAIDWorkerThread(QThread):
             ga_path = os.path.join(self.flexaid_temp_path, 'ga_inp.dat').replace('\\', '/')
             self.edit_ga(os.path.join(flexaid_deps_path, 'ga_inp.dat'), ga_path, self.setting_dictionary)
             flexaid_command = [flexaid_binary_path, config_file_path, ga_path, flexaid_result_name_path]
-
+            start_time = time.time()
             self._process = subprocess.Popen(flexaid_command)
             while self._is_running and self._process.poll() is None:
                 self.msleep(100)
 
             if self._process.poll() == 0:
-                self.finished.emit()
+                end_time = time.time()
+                execution_time = end_time - start_time
+                self.finished.emit(execution_time)

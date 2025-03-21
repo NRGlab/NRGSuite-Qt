@@ -14,7 +14,8 @@ from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor
 import csv
 from Bio import PDB
 from matplotlib.colors import LinearSegmentedColormap
-
+import time
+import general_functions
 
 def refresh_res(form,out_path):
     l_dir=os.listdir(out_path)
@@ -147,6 +148,7 @@ def get_chains_from_object(object_name):
 
 
 def load_surfaces(form, temp_path, main_folder_path, binary_folder_path, binary_suffix):
+    start_time = time.time()
     vcon_binary_path = os.path.join(binary_folder_path, f'vcon{binary_suffix}')
     target = form.surface_select_object_1.currentText()
     lig = form.surface_select_ligand_object_1.currentText()
@@ -221,6 +223,12 @@ def load_surfaces(form, temp_path, main_folder_path, binary_folder_path, binary_
                     for item in list(cf_dic):
                         t1.write('{},{}\n'.format(item, cf_dic[item]))
                 read_and_select_residues(csv_file, target)
+    cmd.disable(f'GetCleft,NRGRank,FlexAID')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    general_functions.output_message(form.output_box, '=========== Surfaces ===========', 'valid')
+    general_functions.output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+    general_functions.output_message(form.output_box, '=========== END Surfaces ===========', 'valid')
     form.Surfaces_tabs.setCurrentIndex(1)
 
 

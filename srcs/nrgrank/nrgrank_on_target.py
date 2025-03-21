@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import pandas as pd
+import time
 import glob
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -249,6 +250,7 @@ class NRGRankThread(QThread):
         cmd.zoom(binding_site_name, complete=1)
 
     def run(self):
+        start_time = time.time()
         self.message_signal.emit("=========== NRGRank ===========")
         self.message_signal.emit(f"Processing Target")
         self.process_target_process = subprocess.Popen([sys.executable,
@@ -279,7 +281,9 @@ class NRGRankThread(QThread):
                     print(f"Error occurred: {e}")
 
         if self.is_running:
+            end_time = time.time()
             self.message_signal.emit('Screening has finished')
+            self.message_signal.emit(f"Execution time: {end_time - start_time:.4f} seconds")
             top_n_name_list, csv_output_path = self.merge_csv()
             ligand_pose_path = os.path.join(self.nrgrank_output_path, 'ligand_poses',  self.binding_site_name)
             self.manage_poses(top_n_name_list, ligand_pose_path, self.binding_site_name, self.target_name, self.ligand_set_name)
