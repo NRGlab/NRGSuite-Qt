@@ -203,24 +203,22 @@ def dynamical_signature(form, install_dir):
         diff_list = []
 
         for state in range(cmd.count_states(target_2)):
+            print('state: ', state)
             output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{state}.pdb')
             cmd.save(output_file, target_2, state=state + 1)
-
             diff = compare_residues(target_file, output_file)
             diff_list.append(diff)
             os.rename(output_file, os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')
-
             b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
             svib_list.append(svib_no_lig - svib_ref)
-            filename = os.path.splitext(os.path.basename(output_file))[0]
-
             for b_factor in range(len(dyna_sig_list_no_lig)):
                 dyna_sig_list_no_lig[b_factor] = (dyna_sig_list_ref[b_factor] / dyna_sig_list_no_lig[b_factor]) - 1
             if 'LIG.' in model_no_lig.get_mass_labels()[-1]:
                 dyna_sig_list_no_lig[-1] = 0
             dyna_sig_list_no_lig = standardize_to_minus1_plus1(dyna_sig_list_no_lig)
 
+            filename = os.path.splitext(os.path.basename(output_file))[0]
             plots.append(go.Scatter(x=prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_list_no_lig, mode='lines',
                                     name=f'Diff {diff}'), )
             write_b_factor(filename, dyna_sig_list_no_lig, temp_path, model_no_lig.get_mass_labels())
@@ -284,12 +282,16 @@ def create_group(group_name, object_list):
 
 
 def run_dynamical_signature(target_file, beta, main_folder_path, temp_path):
+    start_time = time.time()
     _, filename = os.path.split(target_file)
     target = os.path.splitext(filename)[0]
     model = encom_model(target_file, main_folder_path, temp_path)
     dyna_sig = model.compute_bfactors_boltzmann(beta=float(beta))
     svib = model.compute_vib_entropy(beta=float(beta))
     b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model.get_mass_labels())
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f'Execution time {target_file}: {execution_time}')
     return b_fact_dictionary, dyna_sig, model, svib
 
 

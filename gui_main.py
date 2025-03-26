@@ -14,6 +14,7 @@ import general_functions
 from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
+from srcs.nrgten.NRGten_thread import DynasigManager
 from srcs.settings import run_settings
 import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
@@ -137,6 +138,7 @@ class Controller:
         self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
         self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1))
         self.form.NRGten_dynasig_run.clicked.connect(lambda: run_NRGTEN.dynamical_signature(self.form, install_dir))
+        self.form.NRGten_dynasig_run_thread.clicked.connect(self.run_NRGTen)
         self.form.NRGten_conf_ensem_run.clicked.connect(lambda: run_NRGTEN.conformational_ensemble(self.form, install_dir))
 
         # Single Mutations
@@ -182,6 +184,14 @@ class Controller:
     def run_flexaid(self):
         self.flexaid_manager = FlexAIDManager(self.form, self.binary_folder_path, self.binary_suffix, install_dir, self.color_list, self.model)
         self.flexaid_manager.start_run()
+
+    def run_NRGTen(self):
+        target_1 = self.form.NRGten_select_target_object_1.currentText()
+        if target_1 == '':
+            general_functions.output_message(self.form.output_box, 'No Object selected under: Load Object', 'warning')
+        else:
+            self.nrgtenrunner = DynasigManager(self.form, install_dir)
+            self.nrgtenrunner.run_nrgten()
 
 
 class NRGSuitePlugin(QWidget):

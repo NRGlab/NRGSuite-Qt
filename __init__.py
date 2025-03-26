@@ -50,7 +50,7 @@ def run_plugin_gui():
     distribution = importlib.metadata.distribution('nrgten')
     if platform.system() == 'Windows' and not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon')):
         shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon.exe'),
-                    os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))
+                    os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon.exe'))
 
     dialog.show()
     dialog.raise_()
