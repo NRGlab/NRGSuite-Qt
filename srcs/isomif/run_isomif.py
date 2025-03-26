@@ -107,6 +107,8 @@ def prepare_view(target_1, target_2):
     cmd.disable('GetCleft, FlexAID, NRGRank, Surfaces')
 
 def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
+    start_time = time.time()
+    output_message(form.output_box, '=========== IsoMIF ===========', 'valid')
     output_box = form.output_box
     python_version = f'{sys.version.split(".")[0]}.{sys.version_info[1]}'
 
@@ -150,6 +152,10 @@ def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
             cmd.set_name(target_2 + '_copy', target_2 +'_h')
             cmd.group('IsoMIF',target_1+'_h or '+target_2+'_h')
             cmd.group('isomif_'+target_1+'_'+target_2, target_1+'_h or '+target_2+'_h')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+    output_message(form.output_box, '=========== END IsoMIF ===========', 'valid')
 
 def calculate_p_value(measurement, data):
     mean=np.mean(data)

@@ -50,14 +50,14 @@ def read_mol2(mol_file):
             select = True
     for line in selected_Lines:
         add = line[:-2].split("\t")
-        print(add)
+        # print(add)
         list_atomnames.append(add[1])
         list_atomtypes.append(add[-4])
         list_res.append(add[-2])
     for k in range(len(list_atomnames)):
         list_atomnames[k] = list_atomnames[k].strip()
     res = list_res[0]
-    print('res:', res)
+    # print('res:', res)
     return (list_atomnames, list_atomtypes, res)
 
 def atomtypes_to_numbers(list_atomtypes):

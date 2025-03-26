@@ -1,6 +1,7 @@
 from PyQt5.QtCore import pyqtSignal, QThread, QObject
 import general_functions
 import os
+import time
 from pymol import cmd
 import subprocess
 import re
@@ -120,6 +121,9 @@ class GetCleftWorker(QThread):
         getcleft_command = self.get_arg_str(getcleft_binary_path, object_save_path, cleft_save_path, self.parameter_dictionary)
         self.message_signal.emit('=========== GetCleft ===========', 'valid')
         self.message_signal.emit('Starting to generate clefts', 'valid')
+        start_time = time.time()
         subprocess.run(getcleft_command, check=True)
+        end_time = time.time()
+        self.message_signal.emit(f"Execution time: {end_time - start_time:.4f} seconds", 'valid')
         self.load_show_cleft(cleft_save_path, self.color_list, self.pymol_object)
         self.message_signal.emit('=========== END GetCleft ===========' , 'valid')

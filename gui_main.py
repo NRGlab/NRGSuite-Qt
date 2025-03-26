@@ -14,6 +14,7 @@ import general_functions
 from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
+from srcs.nrgten.NRGten_thread import DynasigManager
 from srcs.settings import run_settings
 import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
@@ -133,63 +134,32 @@ class Controller:
             self.form.surface_select_individual_result.currentText().split('_')[1], num_rows=self.form.TOPN_lineEdit_2.text()))
 
         # NRGTEN
-        self.form.NRGten_target_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_1, self.form.output_box))
-        self.form.NRGten_target_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
-        self.form.NRGten_target_refresh_object_2.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1))
-        self.form.NRGten_dynasig_run.clicked.connect(
-            lambda: run_NRGTEN.dynamical_signature(self.form.NRGten_select_target_object_1.currentText(),
-                                                   self.form.NRGten_select_ligand_object_1.currentText(),
-                                                   self.form.NRGten_select_target_object_2.currentText(),
-                                                   self.form.NRGten_dynasig_beta.text(), install_dir,
-                                                   self.form.temp_line_edit.text()))
-        self.form.NRGten_conf_ensem_run.clicked.connect(
-            lambda: run_NRGTEN.conformational_ensemble(self.form.NRGten_select_target_object_1.currentText(),
-                                                       self.form.NRGten_modes_lineEdit.text(),
-                                                       self.form.NRGten_step_lineEdit.text(),
-                                                       self.form.NRGten_max_conf_lineEdit.text(),
-                                                       self.form.NRGten_max_dis_lineEdit.text(),
-                                                       self.form.NRGten_optmizestates.isChecked(), install_dir,
-                                                       self.form.temp_line_edit.text(), self.form))
+        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_1, self.form.output_box))
+        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
+        self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1))
+        self.form.NRGten_dynasig_run.clicked.connect(lambda: run_NRGTEN.dynamical_signature(self.form, install_dir))
+        self.form.NRGten_dynasig_run_thread.clicked.connect(self.run_NRGTen)
+        self.form.NRGten_conf_ensem_run.clicked.connect(lambda: run_NRGTEN.conformational_ensemble(self.form, install_dir))
 
-        # Modeller
-        self.form.Modeller_refresh_object.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.Modeller_select_object, self.form.output_box))
-        self.form.Modeller_refresh_residue.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.Modeller_select_residue, self.form.output_box, lig=1))
+        # Single Mutations
+        self.form.Modeller_refresh_object.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_object, self.form.output_box))
+        self.form.Modeller_refresh_residue.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_residue, self.form.output_box, lig=1))
         self.form.modeller_button_mutate.clicked.connect(lambda: run_modeller.model_mutations(self.form, self.form.temp_line_edit.text()))
         self.form.modeller_checkbox_all.clicked.connect(lambda: run_modeller.check_all(self.form))
 
-        # isomif functions
-        self.form.ISOMIF_target_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_1, self.form.output_box))
-        self.form.ISOMIF_target_refresh_object_2.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_2, self.form.output_box, add_none=1))
+        # IsoMIF
+        self.form.ISOMIF_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_1, self.form.output_box))
+        self.form.ISOMIF_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_2, self.form.output_box, add_none=1))
+        self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_1, self.form.ISOMIF_select_target_object_1.currentText(), self.form.output_box, show_all_objects=True))
+        self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
+        self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_2, self.form.ISOMIF_select_target_object_2.currentText(), self.form.output_box, add_none=True, show_all_objects=True))
+        self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
+        self.form.ISOMIF_run.clicked.connect(lambda: run_isomif.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
 
-        self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_1, self.form.ISOMIF_select_target_object_1.currentText(), self.form.output_box, show_all_objects=True))
-        self.form.ISOMIF_cleft_refresh_object_1.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
-
-        self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(
-            lambda: general_functions.refresh_dropdown_bd_site(self.form.ISOMIF_select_cleft_object_2, self.form.ISOMIF_select_target_object_2.currentText(), self.form.output_box, add_none=True, show_all_objects=True))
-        self.form.ISOMIF_cleft_refresh_object_2.clicked.connect(
-            lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
-
-        self.form.ISOMIF_run.clicked.connect(
-            lambda: run_isomif.mif_plot(self.form, self.binary_folder_path, self.binary_suffix, install_dir))
-        ### Settings functions
-        self.form.Settings_button_refresh_obj.clicked.connect(
-            lambda: run_settings.refresh_objects(self.form)
-        )
-        self.form.Settings_button_combine_obj.clicked.connect(
-            lambda: run_settings.combine_objects(self.form)
-        )
-        self.form.Settings_split_states_button.clicked.connect(
-            lambda: run_settings.devide_states(self.form)
-        )
+        # Settings functions
+        self.form.Settings_button_refresh_obj.clicked.connect(lambda: run_settings.refresh_objects(self.form))
+        self.form.Settings_button_combine_obj.clicked.connect(lambda: run_settings.combine_objects(self.form))
+        self.form.Settings_split_states_button.clicked.connect(lambda: run_settings.devide_states(self.form))
 
     def run_getcleft(self):
         try:
@@ -214,6 +184,14 @@ class Controller:
     def run_flexaid(self):
         self.flexaid_manager = FlexAIDManager(self.form, self.binary_folder_path, self.binary_suffix, install_dir, self.color_list, self.model)
         self.flexaid_manager.start_run()
+
+    def run_NRGTen(self):
+        target_1 = self.form.NRGten_select_target_object_1.currentText()
+        if target_1 == '':
+            general_functions.output_message(self.form.output_box, 'No Object selected under: Load Object', 'warning')
+        else:
+            self.nrgtenrunner = DynasigManager(self.form, install_dir)
+            self.nrgtenrunner.run_nrgten()
 
 
 class NRGSuitePlugin(QWidget):

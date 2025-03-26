@@ -32,7 +32,7 @@ def install_package(package, main_folder_path):
 
 def check_packages(install_dir):
     print('Checking python modules')
-    packages = ['nrgten', 'Bio', 'pandas', 'matplotlib', 'colour', 'scipy', 'numpy==2.0', 'numba', 'plotly', 'rdkit']
+    packages = ['nrgten', 'Bio', 'pandas', 'matplotlib', 'colour', 'scipy', 'numpy==2.0', 'numba', 'plotly', 'rdkit', 'joblib']
     for package in packages:
         install_package(package, install_dir)
 
@@ -48,10 +48,12 @@ def run_plugin_gui():
         dialog = gui_main.NRGSuitePlugin()
         
     distribution = importlib.metadata.distribution('nrgten')
+
     print(os.path.getsize(os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon')))
     if platform.system() == 'Windows' and (not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon')) or os.path.getsize(os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))) != 30208:
         shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon_nrgten.exe'),
                     os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))
+
 
     dialog.show()
     dialog.raise_()

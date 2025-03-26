@@ -7,6 +7,8 @@ from general_functions import process_flexaid_result
 import os
 import numpy as np
 import plotly.graph_objects as go
+import time
+from general_functions import output_message
 
 
 def remove_selection_and_save(object_name, selection, output_file):
@@ -145,196 +147,133 @@ def prep_labels(labels):
     return(labels_list)
 
 
+def dynamical_signature(form, install_dir):
+    target = form.NRGten_select_target_object_1.currentText()
+    lig = form.NRGten_select_ligand_object_1.currentText()
+    target_2 = form.NRGten_select_target_object_2.currentText()
+    beta = form.NRGten_dynasig_beta.text()
+    main_folder_path = install_dir
+    temp_path = form.temp_line_edit.text()
 
-
-def dynamical_signature(target, lig, target_2, beta, main_folder_path, temp_path):
+    start_time = time.time()
     target_file = os.path.join(temp_path,'NRGTEN', f'{target}.pdb')
-    if target_2 == 'None':
-        plots=[]
-        svib_list=[]
+    plots = []
+    svib_list = []
+    cmd.save(target_file, target)
 
-        cmd.save(target_file, target)
-        model=run_dynamical_signature(target_file, beta, main_folder_path, temp_path)
-        b_fact_dict = model[0]
-        dynasig_plot=model[1]
-        svib_list.append(model[3])
-        plots.append(go.Scatter(x=prep_labels(model[2].get_mass_labels()), y=dynasig_plot, mode='lines',
-                                name=f'Svib {model[3]}'))
-        cmd.disable(target)
-        cmd.load(target_file[:-4] + '_dynasig.pdb')
-        cmd.spectrum(selection=os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4], palette='blue_white_red',
-                     expression='q')
-        cmd.cartoon('putty',selection=os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4])
-        cmd.group('NRGTEN',os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4])
+    b_fact_dictionary_ref, dyna_sig_list_ref, model_ref, svib_ref = run_dynamical_signature(target_file, beta,
+                                                                                            main_folder_path, temp_path)
+    cmd.disable(target)
+    selection = os.path.splitext(os.path.basename(target_file))[0] + '_dynasig'
+    cmd.load(target_file[:-4] + '_dynasig.pdb')
+    cmd.spectrum(selection=selection, palette='blue_white_red', expression='q')
+    cmd.cartoon('putty', selection=selection)
+    cmd.group('NRGTEN', selection)
+
+    if target_2 == 'None':
+        target_name = target
+        svib_list.append(svib_ref)
+        plots.append(go.Scatter(x=prep_labels(model_ref.get_mass_labels()), y=dyna_sig_list_ref, mode='lines',
+                                name=f'Svib {svib_ref}'))
+
         if lig != 'None':
             output_file = os.path.join(temp_path,'NRGTEN', f'no_lig_{target}.pdb')
             remove_selection_and_save(target, lig, output_file)
-            dyna_ob = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
-            dyna_sig_no_lig = dyna_ob[1]
-            model_no_lig = dyna_ob[2]
-            svib_nl=dyna_ob[3]
-            svib_list.append(svib_nl)
+            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
+            svib_list.append(svib_no_lig)
+            filename = os.path.splitext(os.path.basename(output_file))[0]
 
-            # Use os.path.split() and os.path.splitext()
-            _, filename = os.path.split(output_file)
-            key_base, _ = os.path.splitext(filename)
-
-            for b_factor in range(len(dyna_sig_no_lig)):
+            for b_factor in range(len(dyna_sig_list_no_lig)):
                 mass = model_no_lig.get_mass_labels()[b_factor]
                 key = '{}_{}_{}'.format(mass.split('|')[0][:3], mass.split('|')[2], mass.split('|')[1])
-                dyna_sig_no_lig[b_factor] = (b_fact_dict[key] / dyna_sig_no_lig[b_factor]) - 1
-            plots.append(go.Scatter(x=prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_no_lig, mode='lines',
-                                    name=f'Svib {svib_nl}'))
-            write_b_factor(key_base, dyna_sig_no_lig, temp_path, model_no_lig.get_mass_labels())
+                dyna_sig_list_no_lig[b_factor] = (b_fact_dictionary_ref[key] / dyna_sig_list_no_lig[b_factor]) - 1
+
+            plots.append(go.Scatter(x=prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_list_no_lig, mode='lines',
+                                    name=f'Svib {svib_no_lig}'))
+            write_b_factor(filename, dyna_sig_list_no_lig, temp_path, model_no_lig.get_mass_labels())
             cmd.load(output_file[:-4] + '_dynasig.pdb')
-            cmd.spectrum(selection=key_base + '_dynasig', palette='blue_white_red', expression='q', minimum=-1,
+            cmd.spectrum(selection=filename + '_dynasig', palette='blue_white_red', expression='q', minimum=-1,
                          maximum=1)
-            cmd.cartoon('putty', selection=key_base+ '_dynasig')
-            cmd.group('NRGTEN', key_base+ '_dynasig')
-
-
-        fig = go.Figure()
-
-        # Add traces but set them to be initially invisible, except for the first one
-        for i, plot in enumerate(plots):
-            fig.add_trace(plot)
-            if i != 0:
-                fig.data[i].visible = False
-
-        # Create buttons to toggle visibility of each trace
-        buttons = []
-
-        # Add button for showing all plots together
-        all_visible_button = dict(
-            label="All Combined",
-            method="update",
-            args=[{"visible": [True for _ in range(len(plots))]}]  # Show all traces
-        )
-        buttons.append(all_visible_button)
-
-        for i in range(len(plots)):
-            if i==1:
-                button = dict(
-                    label=f"Differential to target alone, DeltaSvib of target: {svib_list[i]:.2e}",
-                    method="update",
-                    args=[{"visible": [j == i for j in range(len(plots))]}]  # Toggle visibility
-                )
-            else:
-                button = dict(
-                    label=f"Dynamical signature of complex, DeltaSvib: {svib_list[i]:.2e}",
-                    method="update",
-                    args=[{"visible": [j == i for j in range(len(plots))]}]  # Toggle visibility
-                )
-            buttons.append(button)
-
-        fig.update_layout(
-            updatemenus=[dict(type="buttons", showactive=True, buttons=buttons)],
-            title=f"Dynamical Signatures of {target}",
-            xaxis_title="Residue Index",
-            yaxis_title="Fluctuation",
-        )
-
-        # Display the interactive plot
-        fig.write_html(os.path.join(temp_path, 'NRGTEN', f'{target}_diff.html'))
-        fig.show()
+            cmd.cartoon('putty', selection=filename+ '_dynasig')
+            cmd.group('NRGTEN', filename + '_dynasig')
 
     else:
-        cmd.save(target_file, target)
-        dyna_sig= run_dynamical_signature(target_file, beta, main_folder_path, temp_path)
-        b_fact_dict =  dyna_sig[1]
-        svib_ref= dyna_sig[3]
-        cmd.disable(target)
-        cmd.load(target_file[:-4] + '_dynasig.pdb')
-        cmd.spectrum(selection=os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4], palette='blue_white_red',
-                     expression='q')
-        cmd.cartoon('putty', selection=os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4])
-        cmd.group('NRGTEN', os.path.basename(target_file[:-4] + '_dynasig.pdb')[:-4])
+        target_name = target_2
         object_list = []
-        diff_list=[]
-        plots = []
-        all_signatures=[[],[]]
-        svib_list=[]
+        diff_list = []
 
         for state in range(cmd.count_states(target_2)):
-            output_file = os.path.join(temp_path,'NRGTEN' ,f'{target_2}_{state}.pdb')
+            print('state: ', state)
+            output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{state}.pdb')
             cmd.save(output_file, target_2, state=state + 1)
-
             diff = compare_residues(target_file, output_file)
             diff_list.append(diff)
             os.rename(output_file, os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')
-
-            dyna_ob = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
-            dyna_sig_no_lig = dyna_ob[1]
-            model_no_lig = dyna_ob[2]
-            svib_list.append(dyna_ob[3]-svib_ref)
-            _, filename = os.path.split(output_file)
-            key_base, _ = os.path.splitext(filename)
-
-            for b_factor in range(len(dyna_sig_no_lig)):
-                dyna_sig_no_lig[b_factor] = (b_fact_dict[b_factor] / dyna_sig_no_lig[b_factor]) - 1
+            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
+            svib_list.append(svib_no_lig - svib_ref)
+            for b_factor in range(len(dyna_sig_list_no_lig)):
+                dyna_sig_list_no_lig[b_factor] = (dyna_sig_list_ref[b_factor] / dyna_sig_list_no_lig[b_factor]) - 1
             if 'LIG.' in model_no_lig.get_mass_labels()[-1]:
-                dyna_sig_no_lig[-1]=0
-            dyna_sig_no_lig = standardize_to_minus1_plus1(dyna_sig_no_lig)
+                dyna_sig_list_no_lig[-1] = 0
+            dyna_sig_list_no_lig = standardize_to_minus1_plus1(dyna_sig_list_no_lig)
 
-
-            #plt.plot(dyna_sig_no_lig, label=diff)
-
-            plots.append(go.Scatter(x=prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_no_lig, mode='lines', name=f'Diff {diff}'),)
-            all_signatures[0].append(dyna_sig_no_lig)
-            all_signatures[1].append(f'{target_2}_{diff}')
-            write_b_factor(key_base, dyna_sig_no_lig, temp_path, model_no_lig.get_mass_labels())
-            cmd.load(os.path.join(temp_path,'NRGTEN', f'{key_base}_dynasig.pdb'), f'{target_2}_dynasigdif_{diff}')
+            filename = os.path.splitext(os.path.basename(output_file))[0]
+            plots.append(go.Scatter(x=prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_list_no_lig, mode='lines',
+                                    name=f'Diff {diff}'), )
+            write_b_factor(filename, dyna_sig_list_no_lig, temp_path, model_no_lig.get_mass_labels())
+            cmd.load(os.path.join(temp_path, 'NRGTEN', f'{filename}_dynasig.pdb'), f'{target_2}_dynasigdif_{diff}')
             object_list.append(f'{target_2}_dynasigdif_{diff}')
-
-        fig = go.Figure()
-
-        # Add traces but set them to be initially invisible, except for the first one
-        for i, plot in enumerate(plots):
-            fig.add_trace(plot)
-            if i != 0:
-                fig.data[i].visible = False
-
-        # Create buttons to toggle visibility of each trace
-        buttons = []
-
-        # Add button for showing all plots together
-        all_visible_button = dict(
-            label="All Combined",
-            method="update",
-            args=[{"visible": [True for _ in range(len(plots))]}]  # Show all traces
-        )
-        buttons.append(all_visible_button)
-
-        for i in range(len(plots)):
-            button = dict(
-                label=f"Diff {diff_list[i]}, DeltaSvib: {svib_list[i]:.2e}",
-                method="update",
-                args=[{"visible": [j == i for j in range(len(plots))]}]  # Toggle visibility
-            )
-            buttons.append(button)
-
-
-
-        # Update layout with the buttons
-        fig.update_layout(
-            updatemenus=[dict(type="buttons", showactive=True, buttons=buttons)],
-            title=f"Dynamical Signatures of {target_2}",
-            xaxis_title="Residue Index",
-            yaxis_title="Fluctuation differential",
-        )
-
-        # Display the interactive plot
-        fig.write_html(os.path.join(temp_path,'NRGTEN',f'{target_2}_diff.html'))
-        fig.show()
 
         for state in diff_list:
             cmd.spectrum(selection=f'{target_2}_dynasigdif_{state}', palette='blue_white_red', expression='q',
                          minimum=-1, maximum=1)
             cmd.cartoon('putty', selection=f'{target_2}_dynasigdif_{state}')
         create_group(f'{target_2}_dynasigdif', object_list)
-        cmd.group('NRGTEN',f'{target_2}_dynasigdif')
+        cmd.group('NRGTEN', f'{target_2}_dynasigdif')
 
+    fig = go.Figure()
+
+    # Add traces but set them to be initially invisible, except for the first one
+    for i, plot in enumerate(plots):
+        fig.add_trace(plot)
+        if i != 0:
+            fig.data[i].visible = False
+
+    # Create buttons to toggle visibility of each trace and for showing all plots together
+    buttons = []
+    all_visible_button = dict(label="All Combined", method="update",
+                              args=[{"visible": [True for _ in range(len(plots))]}]
+    )
+    buttons.append(all_visible_button)
+
+    for i in range(len(plots)):
+        if target_2 == 'None':
+            if i==1:
+                label = f"Differential to target alone, DeltaSvib of target: {svib_list[i]:.2e}"
+            else:
+                label = f"Dynamical signature of complex, DeltaSvib: {svib_list[i]:.2e}"
+        else:
+            label = f"Diff {diff_list[i]}, DeltaSvib: {svib_list[i]:.2e}"
+        button = dict(label=label, method="update", args=[{"visible": [j == i for j in range(len(plots))]}])
+        buttons.append(button)
+
+    # Update layout with the buttons
+    fig.update_layout(
+        updatemenus=[dict(type="buttons", showactive=True, buttons=buttons)],
+        title=f"Dynamical Signatures of {target_name}",
+        xaxis_title="Residue Index",
+        yaxis_title="Fluctuation differential",
+    )
+
+    fig.write_html(os.path.join(temp_path, 'NRGTEN', f'{target_name}_diff.html'))
+    fig.show()
+
+    end_time = time.time()
+    execution_time = end_time - start_time
+    output_message(form.output_box, '=========== DynaSig ===========', 'valid')
+    output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+    output_message(form.output_box, '=========== END DynaSig ===========', 'valid')
 
 def create_group(group_name, object_list):
     members = ', '.join(object_list)
@@ -343,16 +282,30 @@ def create_group(group_name, object_list):
 
 
 def run_dynamical_signature(target_file, beta, main_folder_path, temp_path):
+    start_time = time.time()
     _, filename = os.path.split(target_file)
-    target, _ = os.path.splitext(filename)
+    target = os.path.splitext(filename)[0]
     model = encom_model(target_file, main_folder_path, temp_path)
     dyna_sig = model.compute_bfactors_boltzmann(beta=float(beta))
-    svib=model.compute_vib_entropy(beta=float(beta))
-    b_fact_dict = write_b_factor(target, dyna_sig, temp_path, model.get_mass_labels())
-    return [b_fact_dict, dyna_sig, model, svib]
+    svib = model.compute_vib_entropy(beta=float(beta))
+    b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model.get_mass_labels())
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f'Execution time {target_file}: {execution_time}')
+    return b_fact_dictionary, dyna_sig, model, svib
 
 
-def conformational_ensemble(target, modes_list, step, max_conf, max_disp, opt, main_folder_path, temp_path,form):
+def conformational_ensemble(form, install_dir):
+    start_time = time.time()
+    target = form.NRGten_select_target_object_1.currentText()
+    modes_list = form.NRGten_modes_lineEdit.text()
+    step = form.NRGten_step_lineEdit.text()
+    max_conf = form.NRGten_max_conf_lineEdit.text()
+    max_disp = form.NRGten_max_dis_lineEdit.text()
+    opt = form.NRGten_optmizestates.isChecked()
+    main_folder_path = install_dir
+    temp_path = form.temp_line_edit.text()
+
     modes_list = list(map(int, modes_list.split(',')))
     target_file = os.path.join(temp_path,'NRGTEN', f'{target}.pdb')
     cmd.save(target_file, target)
@@ -367,6 +320,8 @@ def conformational_ensemble(target, modes_list, step, max_conf, max_disp, opt, m
     else:
         cmd.load(ensemble_path)
         cmd.show('cartoon', f'{target}_conf_ensemble')
-
-
-
+    end_time = time.time()
+    execution_time = end_time - start_time
+    output_message(form.output_box, '=========== Conformational Ensemble ===========', 'valid')
+    output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
+    output_message(form.output_box, '=========== END Conformational Ensemble ===========', 'valid')
