@@ -15,6 +15,7 @@ from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
 from srcs.nrgten.NRGten_thread import DynasigManager
+from srcs.nrgsuite_modeller.run_modeller import single_mutationManager
 from srcs.settings import run_settings
 import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
@@ -146,6 +147,7 @@ class Controller:
         self.form.Modeller_refresh_residue.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_residue, self.form.output_box, lig=1))
         self.form.modeller_button_mutate.clicked.connect(lambda: run_modeller.model_mutations(self.form, self.form.temp_line_edit.text()))
         self.form.modeller_checkbox_all.clicked.connect(lambda: run_modeller.check_all(self.form))
+        self.form.modeller_mutate_thread.clicked.connect(self.run_single_mutation)
 
         # IsoMIF
         self.form.ISOMIF_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_1, self.form.output_box))
@@ -192,6 +194,18 @@ class Controller:
         else:
             self.nrgtenrunner = DynasigManager(self.form, install_dir)
             self.nrgtenrunner.run_nrgten()
+
+    def run_single_mutation(self):
+        objects_to_check = ['Modeller_select_object', 'Modeller_select_residue']
+        ok_continue = True
+        for obj in objects_to_check:
+            obj_attribute = getattr(self.form, obj)
+            if obj_attribute.currentText() == '':
+                general_functions.output_message(self.form.output_box, 'Missing object in box. Cannot run', 'warning')
+                ok_continue = False
+        if ok_continue:
+            self.single_mutation_runner = single_mutationManager(self.form, )
+            self.single_mutation_runner.run_single_mutation()
 
 
 class NRGSuitePlugin(QWidget):

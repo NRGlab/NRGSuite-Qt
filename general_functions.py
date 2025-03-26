@@ -278,7 +278,6 @@ def read_coords_cleft(cleft_path):
 
 def get_residue_info(selection):
     unique_residues = set()
-    residue_info = []
     cmd.iterate(selection, 'unique_residues.add((resn, resi, chain))', space={'unique_residues': unique_residues})
     residue_info = [[resname, resn, chain] for resname, resn, chain in unique_residues]
     return residue_info

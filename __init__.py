@@ -49,7 +49,6 @@ def run_plugin_gui():
         
     distribution = importlib.metadata.distribution('nrgten')
 
-    print(os.path.getsize(os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon')))
     if platform.system() == 'Windows' and (not os.path.isfile(os.path.join(str(distribution.locate_file('')), 'pyvcon', 'vcontacts', 'vcon')) or os.path.getsize(os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))) != 30208:
         shutil.copy(os.path.join(install_dir, 'bin', 'win', 'vcon_nrgten.exe'),
                     os.path.join(str(distribution.locate_file('')),'pyvcon', 'vcontacts', 'vcon'))

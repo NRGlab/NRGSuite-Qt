@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>811</width>
-    <height>713</height>
+    <height>730</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -297,7 +297,7 @@ QPushButton:checked{
          <string notr="true">font-size:20;</string>
         </property>
         <property name="currentIndex">
-         <number>4</number>
+         <number>5</number>
         </property>
         <widget class="QWidget" name="getcleft_page">
          <layout class="QVBoxLayout" name="verticalLayout_10">
@@ -2964,7 +2964,7 @@ color: white;
                    <item>
                     <widget class="QCheckBox" name="Modeller_checkBox_20">
                      <property name="text">
-                      <string>VEL</string>
+                      <string>VAL</string>
                      </property>
                     </widget>
                    </item>
@@ -3004,6 +3004,13 @@ color: white;
             </property>
             <property name="default">
              <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="modeller_mutate_thread">
+            <property name="text">
+             <string>Mutate Thread</string>
             </property>
            </widget>
           </item>

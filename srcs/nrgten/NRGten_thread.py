@@ -204,7 +204,7 @@ class DynasigThread(QThread):
 
     @staticmethod
     def process_state(state, state_pdb_file, svib_ref, dyna_sig_list_ref, list_het, temp_path, main_folder_path, beta):
-        print(f'===== State {state} =====')
+        print(f'= State {state} started =')
         command = [sys.executable,
                    os.path.join(main_folder_path, 'srcs', 'nrgten', 'nrgten_separate.py'),
                    '-t', state_pdb_file,
@@ -291,7 +291,7 @@ class DynasigThread(QThread):
             # completed_tasks = 0
             # total_tasks = cmd.count_states(self.target_2)
             target_name = self.target_2
-            self.message_signal.emit(f"=========== Starting states ===========")
+            self.message_signal.emit(f"Starting states")
             states = range(cmd.count_states(self.target_2))
             state_file_list = []
             diff_list = []
@@ -388,7 +388,6 @@ class DynasigThread(QThread):
 
             end_time = time.time()
             execution_time = end_time - start_time
-            self.message_signal.emit("=========== DynaSig ===========")
             self.message_signal.emit(f"Execution time: {execution_time:.4f} seconds")
             self.message_signal.emit('=========== END DynaSig ===========')
             self.finished_signal.emit()
