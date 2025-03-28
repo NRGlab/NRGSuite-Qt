@@ -172,7 +172,8 @@ def refresh_dropdown_target(dropdown_to_refresh, output_box):
 
 
 
-def refresh_dropdown(dropdown_to_refresh, output_box, filter_for='', no_warning=False,exclude=None, non_group=1, lig=0, add_none=0):
+def refresh_dropdown(dropdown_to_refresh, output_box, filter_for='', no_warning=False, exclude=None, non_group=1, lig=0,
+                     add_none=0, prefer_none=False, prefer_mutants=False):
     list_pymol_objects = cmd.get_names('all')
     if non_group and not lig:
         list_pymol_objects_filtered = cmd.get_object_list('all')
@@ -198,7 +199,13 @@ def refresh_dropdown(dropdown_to_refresh, output_box, filter_for='', no_warning=
         output_message(output_box, 'No objects found', 'warning')
     list_pymol_objects = sorted(list_pymol_objects)
     if add_none:
-        list_pymol_objects.insert(1, 'None')
+        if prefer_none:
+            insert_index = 0
+        else:
+            insert_index = 1
+        list_pymol_objects.insert(insert_index, 'None')
+    if prefer_mutants:
+        list_pymol_objects = sorted(list_pymol_objects, key=lambda x: (not x.endswith("_mutants"), x))
     dropdown_to_refresh.clear()
     dropdown_to_refresh.addItems(list_pymol_objects)
     if len(list_pymol_objects) > 0:

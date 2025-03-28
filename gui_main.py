@@ -136,8 +136,8 @@ class Controller:
 
         # NRGTEN
         self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_1, self.form.output_box))
-        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
-        self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1))
+        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, no_warning=True, lig=1, add_none=1, prefer_none=True))
+        self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1, prefer_mutants=True))
         self.form.NRGten_dynasig_run.clicked.connect(lambda: run_NRGTEN.dynamical_signature(self.form, install_dir))
         self.form.NRGten_dynasig_run_thread.clicked.connect(self.run_NRGTen)
         self.form.NRGten_conf_ensem_run.clicked.connect(lambda: run_NRGTEN.conformational_ensemble(self.form, install_dir))

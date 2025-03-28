@@ -316,6 +316,7 @@ class DynasigThread(QThread):
             svib_list_no_lig = [result[3] for result in results]
 
             for state in states:
+                state_file= state_file_list[state]
                 b_fact_dictionary_no_lig = b_fact_dictionary_list_no_lig[state]
                 dyna_sig_list_no_lig = dyna_sig_list_list_no_lig[state]
                 model_no_lig = model_list_no_lig[state]
@@ -329,11 +330,12 @@ class DynasigThread(QThread):
 
                 dyna_sig_list_no_lig = self.standardize_to_minus1_plus1(dyna_sig_list_no_lig)
 
-                filename = os.path.splitext(os.path.basename(target_file))[0]
-                plot = go.Scatter(x=self.prep_labels(model_list_no_lig[state].get_mass_labels()),
+                filename = os.path.splitext(os.path.basename(state_file))[0]
+                plot = go.Scatter(x=self.prep_labels(model_no_lig.get_mass_labels()),
                                   y=dyna_sig_list_no_lig, mode='lines',
                                   name=f'Diff {diff_list[state]}')
                 plots.append(plot)
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig.get_mass_labels())
                 cmd.load(os.path.join(self.nrgten_temp_path, f'{filename}_dynasig.pdb'), object_list[state])
                 cmd.spectrum(selection=object_list[state], palette='blue_white_red', expression='q',
                              minimum=-1, maximum=1)
