@@ -137,10 +137,11 @@ def run_dynamical_signature(target_file, beta, main_folder_path, temp_path, list
     model = encom_model(target_file, main_folder_path, temp_path, list_het)
     dyna_sig = model.compute_bfactors_boltzmann(beta=float(beta))
     svib = model.compute_vib_entropy(beta=float(beta))
-    b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model.get_mass_labels())
+    model_mass_label = model.get_mass_labels()
+    b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model_mass_label)
     pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
     with open(pickle_file_path, "wb") as f:
-        pickle.dump((b_fact_dictionary, dyna_sig, model, svib), f)
+        pickle.dump((b_fact_dictionary, dyna_sig, model_mass_label, svib), f)
     end_time = time.time()
     execution_time = end_time - start_time
     with open(os.path.splitext(pickle_file_path)[0] + '.txt' , "w") as f:

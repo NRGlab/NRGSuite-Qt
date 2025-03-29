@@ -88,6 +88,7 @@ class DynasigThread(QThread):
 
     @staticmethod
     def prep_labels(labels):
+        print(labels)
         labels_list = []
         for label in labels:
             res = int(label.split("|")[1])
@@ -218,8 +219,8 @@ class DynasigThread(QThread):
             proc.wait()
         pickle_file_path = os.path.splitext(state_pdb_file)[0] + '.pkl'
         with open(pickle_file_path, "rb") as f:
-            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = pickle.load(f)
-        return b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig
+            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig = pickle.load(f)
+        return b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig
 
     def run(self):
         start_time = time.time()
@@ -242,7 +243,7 @@ class DynasigThread(QThread):
             self.msleep(100)
         pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
         with open(pickle_file_path, "rb") as f:
-            b_fact_dictionary_ref, dyna_sig_list_ref, model_ref, svib_ref = pickle.load(f)
+            b_fact_dictionary_ref, dyna_sig_list_ref, model_ref_mass_labels, svib_ref = pickle.load(f)
         cmd.disable(self.target)
         selection = os.path.splitext(os.path.basename(target_file))[0] + '_dynasig'
         cmd.load(target_file[:-4] + '_dynasig.pdb')
@@ -252,7 +253,7 @@ class DynasigThread(QThread):
         if self.target_2 == 'None':
             target_name = self.target
             svib_list.append(svib_ref)
-            plots.append(go.Scatter(x=self.prep_labels(model_ref.get_mass_labels()), y=dyna_sig_list_ref, mode='lines',
+            plots.append(go.Scatter(x=self.prep_labels(model_ref_mass_labels), y=dyna_sig_list_ref, mode='lines',
                                     name=f'Svib {svib_ref}'))
 
             if self.lig != 'None':
@@ -268,19 +269,19 @@ class DynasigThread(QThread):
                     self.msleep(100)
                 pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
                 with open(pickle_file_path, "rb") as f:
-                    b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = pickle.load(f)
+                    b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig = pickle.load(f)
                 svib_list.append(svib_no_lig)
                 filename = os.path.splitext(os.path.basename(output_file))[0]
 
                 for b_factor in range(len(dyna_sig_list_no_lig)):
-                    mass = model_no_lig.get_mass_labels()[b_factor]
+                    mass = model_no_lig_mass_label[b_factor]
                     key = '{}_{}_{}'.format(mass.split('|')[0][:3], mass.split('|')[2], mass.split('|')[1])
                     dyna_sig_list_no_lig[b_factor] = (b_fact_dictionary_ref[key] / dyna_sig_list_no_lig[b_factor]) - 1
 
                 plots.append(
-                    go.Scatter(x=self.prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_list_no_lig, mode='lines',
+                    go.Scatter(x=self.prep_labels(model_no_lig_mass_label), y=dyna_sig_list_no_lig, mode='lines',
                                name=f'Svib {svib_no_lig}'))
-                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig.get_mass_labels())
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig_mass_label)
                 cmd.load(output_file[:-4] + '_dynasig.pdb')
                 cmd.spectrum(selection=filename + '_dynasig', palette='blue_white_red', expression='q', minimum=-1,
                              maximum=1)
@@ -312,30 +313,30 @@ class DynasigThread(QThread):
                                                                      self.beta) for state in states)
             b_fact_dictionary_list_no_lig = [result[0] for result in results]
             dyna_sig_list_list_no_lig = [result[1] for result in results]
-            model_list_no_lig = [result[2] for result in results]
+            model_list_no_lig_mass_label = [result[2] for result in results]
             svib_list_no_lig = [result[3] for result in results]
 
             for state in states:
                 state_file= state_file_list[state]
                 b_fact_dictionary_no_lig = b_fact_dictionary_list_no_lig[state]
                 dyna_sig_list_no_lig = dyna_sig_list_list_no_lig[state]
-                model_no_lig = model_list_no_lig[state]
+                model_no_lig_mass_label = model_list_no_lig_mass_label[state]
                 svib_no_lig = svib_list_no_lig[state]
 
                 svib_list.append(svib_no_lig - svib_ref)
                 for b_factor in range(len(dyna_sig_list_no_lig)):
                     dyna_sig_list_no_lig[b_factor] = (dyna_sig_list_ref[b_factor] / dyna_sig_list_no_lig[b_factor]) - 1
-                if 'LIG.' in model_no_lig.get_mass_labels()[-1]:
+                if 'LIG.' in model_no_lig_mass_label[-1]:
                     dyna_sig_list_no_lig[-1] = 0
 
                 dyna_sig_list_no_lig = self.standardize_to_minus1_plus1(dyna_sig_list_no_lig)
 
                 filename = os.path.splitext(os.path.basename(state_file))[0]
-                plot = go.Scatter(x=self.prep_labels(model_no_lig.get_mass_labels()),
+                plot = go.Scatter(x=self.prep_labels(model_no_lig_mass_label),
                                   y=dyna_sig_list_no_lig, mode='lines',
                                   name=f'Diff {diff_list[state]}')
                 plots.append(plot)
-                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig.get_mass_labels())
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig_mass_label)
                 cmd.load(os.path.join(self.nrgten_temp_path, f'{filename}_dynasig.pdb'), object_list[state])
                 cmd.spectrum(selection=object_list[state], palette='blue_white_red', expression='q',
                              minimum=-1, maximum=1)
