@@ -12,6 +12,7 @@ sys.path.append(install_dir)
 from srcs.surfaces.ligand_atomtypes import add_pdb
 from srcs.surfaces.run_Surfaces import create_ligand_file, flex_res
 from general_functions import process_flexaid_result
+# vcon compiled on Windows with the developper command prompt breaks vcon
 
 
 def generate_massfile(pdb_filename, mass_filename):

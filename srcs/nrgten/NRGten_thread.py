@@ -28,12 +28,9 @@ class DynasigManager:
         else:
             number_of_cores = round(multiprocessing.cpu_count() * (cpu_usage_target / 100))
 
-        # self.initialise_progress_bar()
-        # self.start_loading_gif()
         general_functions.disable_run_mutate_buttons(self.form, disable=True)
         self.dynasig_thread = DynasigThread(self.temp_path,self.target, self.beta, self.lig, self.target_2, self.main_folder_path, number_of_cores)
         self.dynasig_thread.message_signal.connect(self.handle_message_signal)
-        # self.nrgrank_thread.screen_progress_signal.connect(self.handle_screen_progress_signal)
         self.dynasig_thread.finished_signal.connect(self.handle_thread_finished)
         self.dynasig_thread.start()
 
@@ -51,11 +48,7 @@ class DynasigManager:
         self.dynasig_thread.quit()
         self.dynasig_thread.wait()
         self.dynasig_thread = None
-        # self.form.nrgrank_progress.hide()
         general_functions.disable_run_mutate_buttons(self.form, enable=True)
-        # self.movie.stop()
-        # self.form.nrgrank_loading_gif.hide()
-        # self.form.nrgrank_button_cancel.setDisabled(True)
 
 
 class DynasigThread(QThread):
@@ -88,7 +81,6 @@ class DynasigThread(QThread):
 
     @staticmethod
     def prep_labels(labels):
-        print(labels)
         labels_list = []
         for label in labels:
             res = int(label.split("|")[1])
@@ -156,7 +148,6 @@ class DynasigThread(QThread):
                     het_dic[line[17:20]] = '1'
         for lig in list(het_dic):
             def_file = os.path.join(main_folder_path, "deps", "surfaces", 'AMINO_FlexAID.def')
-            flexaid_dat_path = os.path.join(main_folder_path, "deps", "surfaces", 'FlexAID.dat')
             open_def_file = open(def_file, "r")
             ligand_file_name = os.path.join(os.path.dirname(target_file), lig)
             create_ligand_file(target_file, ligand_file_name)
@@ -204,7 +195,7 @@ class DynasigThread(QThread):
         return b_factor_dict
 
     @staticmethod
-    def process_state(state, state_pdb_file, svib_ref, dyna_sig_list_ref, list_het, temp_path, main_folder_path, beta):
+    def process_state(state, state_pdb_file, list_het, temp_path, main_folder_path, beta):
         print(f'= State {state} started =')
         command = [sys.executable,
                    os.path.join(main_folder_path, 'srcs', 'nrgten', 'nrgten_separate.py'),
@@ -213,7 +204,6 @@ class DynasigThread(QThread):
                    '-m', main_folder_path,
                    '-te', temp_path,
                    '-l', list_het]
-
         with subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                               close_fds=True) as proc:
             proc.wait()
@@ -265,7 +255,7 @@ class DynasigThread(QThread):
                                                                    '-m', self.main_folder_path,
                                                                    '-te', self.temp_path,
                                                                    '-l', list_het])
-                while self.is_running and process_init_dynamic_signature.poll() is None:
+                while self.is_running and p.poll() is None:
                     self.msleep(100)
                 pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
                 with open(pickle_file_path, "rb") as f:
@@ -289,8 +279,6 @@ class DynasigThread(QThread):
                 cmd.group('NRGTEN', filename + '_dynasig')
 
         else:
-            # completed_tasks = 0
-            # total_tasks = cmd.count_states(self.target_2)
             target_name = self.target_2
             self.message_signal.emit(f"Starting states")
             states = range(cmd.count_states(self.target_2))
@@ -303,12 +291,14 @@ class DynasigThread(QThread):
 
                 diff = compare_residues(target_file, output_file_state)
                 output_file_diff = os.path.join(self.nrgten_temp_path, f'{self.target_2}_{diff}.pdb')
+                if os.path.isfile(output_file_diff):
+                    os.remove(output_file_diff)
                 os.rename(output_file_state, output_file_diff)
                 state_file_list.append(output_file_diff)
                 diff_list.append(diff)
                 object_name = f'{self.target_2}_dynasigdif_{diff_list[state_counter]}'
                 object_list.append(object_name)
-            results = Parallel(n_jobs=-1)(delayed(self.process_state)(state, state_file_list[state], svib_ref, dyna_sig_list_ref,
+            results = Parallel(n_jobs=-1)(delayed(self.process_state)(state, state_file_list[state],
                                                                      list_het, self.temp_path, self.main_folder_path,
                                                                      self.beta) for state in states)
             b_fact_dictionary_list_no_lig = [result[0] for result in results]
@@ -318,7 +308,7 @@ class DynasigThread(QThread):
 
             for state in states:
                 state_file= state_file_list[state]
-                b_fact_dictionary_no_lig = b_fact_dictionary_list_no_lig[state]
+                _ = b_fact_dictionary_list_no_lig[state]
                 dyna_sig_list_no_lig = dyna_sig_list_list_no_lig[state]
                 model_no_lig_mass_label = model_list_no_lig_mass_label[state]
                 svib_no_lig = svib_list_no_lig[state]
@@ -343,24 +333,14 @@ class DynasigThread(QThread):
                 cmd.cartoon('putty', selection=object_list[state])
             self.create_group(f'{self.target_2}_dynasigdif', object_list)
             cmd.group('NRGTEN', f'{self.target_2}_dynasigdif')
-            #             object_list.append(object_name)
-            #         completed_tasks += 1
-            #         self.message_signal.emit(f"=========== Done {completed_tasks} ===========")
-            #         progress_percentage = int((completed_tasks / total_tasks) * 100)
-            #         # self.screen_progress_signal.emit(progress_percentage)
-            #     except Exception as e:
-            #         print(f"Error occurred: {e}")
-            #         traceback.print_exc()
         if self.is_running:
             fig = go.Figure()
 
-            # Add traces but set them to be initially invisible, except for the first one
             for i, plot in enumerate(plots):
                 fig.add_trace(plot)
                 if i != 0:
                     fig.data[i].visible = False
 
-            # Create buttons to toggle visibility of each trace and for showing all plots together
             buttons = []
             all_visible_button = dict(label="All Combined", method="update",
                                       args=[{"visible": [True for _ in range(len(plots))]}]

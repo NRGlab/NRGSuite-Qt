@@ -208,6 +208,8 @@ def dynamical_signature(form, install_dir):
             cmd.save(output_file, target_2, state=state + 1)
             diff = compare_residues(target_file, output_file)
             diff_list.append(diff)
+            if os.path.isfile(os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')):
+                os.remove(os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             os.rename(output_file, os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')
             b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
