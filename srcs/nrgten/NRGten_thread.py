@@ -29,7 +29,7 @@ class DynasigManager:
             number_of_cores = round(multiprocessing.cpu_count() * (cpu_usage_target / 100))
 
         general_functions.disable_run_mutate_buttons(self.form, disable=True)
-        self.dynasig_thread = DynasigThread(self.temp_path,self.target, self.beta, self.lig, self.target_2, self.main_folder_path, number_of_cores)
+        self.dynasig_thread = DynasigThread(self.temp_path, self.target, self.beta, self.lig, self.target_2, self.main_folder_path, number_of_cores)
         self.dynasig_thread.message_signal.connect(self.handle_message_signal)
         self.dynasig_thread.finished_signal.connect(self.handle_thread_finished)
         self.dynasig_thread.start()
@@ -53,7 +53,6 @@ class DynasigManager:
 
 class DynasigThread(QThread):
     message_signal = pyqtSignal(str)
-    # screen_progress_signal = pyqtSignal(int)
     finished_signal = pyqtSignal()
 
     def __init__(self, temp_path, target, beta, lig, target_2, main_folder_path, number_of_cores):
@@ -139,7 +138,7 @@ class DynasigThread(QThread):
             f.write("CENTER: {}\n".format(medoid.name))
             f.write("NAME: {}\n".format(medoid.name))
 
-    def find_het(self, target_file, temp_path, main_folder_path):
+    def find_het(self, target_file, main_folder_path):
         het_dic = {}
         with open(target_file, "r") as t1:
             texto = t1.readlines()
@@ -165,10 +164,10 @@ class DynasigThread(QThread):
         return list(het_dic)
 
     @staticmethod
-    def write_b_factor(target, dyna_sig, temp_path, labels):
-        target_file = os.path.join(temp_path, 'NRGTEN', f'{target}.pdb')
+    def write_b_factor(target, dyna_sig, nrgten_temp_path, labels):
+        target_file = os.path.join(nrgten_temp_path, f'{target}.pdb')
         b_factor_dict = {}
-        with open(os.path.join(temp_path, 'NRGTEN', target + '_dynasig.txt'), 'w') as t1:
+        with open(os.path.join(nrgten_temp_path, target + '_dynasig.txt'), 'w') as t1:
             for res in range(len(labels)):
                 t1.write('{} {}\n'.format(labels[res], dyna_sig[res]))
         for i in range(len(dyna_sig)):
@@ -188,7 +187,7 @@ class DynasigThread(QThread):
                     texto_list.append(line[:54] + lined + lined_abs + line[66:])
                 else:
                     texto_list.append(line)
-        output_path = os.path.join(temp_path, 'NRGTEN', f'{target}_dynasig.pdb')
+        output_path = os.path.join(nrgten_temp_path, f'{target}_dynasig.pdb')
         with open(output_path, 'w') as t2:
             for line in texto_list:
                 t2.write(line)
@@ -219,7 +218,7 @@ class DynasigThread(QThread):
         plots = []
         svib_list = []
         cmd.save(target_file, self.target)
-        list_het = self.find_het(target_file, self.temp_path, self.main_folder_path)
+        list_het = self.find_het(target_file, self.main_folder_path)
         list_het = json.dumps(list_het)
         process_init_dynamic_signature = subprocess.Popen([sys.executable,
                                                         os.path.join(self.main_folder_path, 'srcs', 'nrgten',
@@ -271,7 +270,7 @@ class DynasigThread(QThread):
                 plots.append(
                     go.Scatter(x=self.prep_labels(model_no_lig_mass_label), y=dyna_sig_list_no_lig, mode='lines',
                                name=f'Svib {svib_no_lig}'))
-                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig_mass_label)
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.nrgten_temp_path, model_no_lig_mass_label)
                 cmd.load(output_file[:-4] + '_dynasig.pdb')
                 cmd.spectrum(selection=filename + '_dynasig', palette='blue_white_red', expression='q', minimum=-1,
                              maximum=1)
@@ -326,7 +325,7 @@ class DynasigThread(QThread):
                                   y=dyna_sig_list_no_lig, mode='lines',
                                   name=f'Diff {diff_list[state]}')
                 plots.append(plot)
-                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig_mass_label)
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.nrgten_temp_path, model_no_lig_mass_label)
                 cmd.load(os.path.join(self.nrgten_temp_path, f'{filename}_dynasig.pdb'), object_list[state])
                 cmd.spectrum(selection=object_list[state], palette='blue_white_red', expression='q',
                              minimum=-1, maximum=1)

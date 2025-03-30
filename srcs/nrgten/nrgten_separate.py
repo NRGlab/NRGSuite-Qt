@@ -56,7 +56,6 @@ def find_het( target_file, temp_path, main_folder_path):
                 het_dic[line[17:20]] = '1'
     for lig in list(het_dic):
         def_file = os.path.join(main_folder_path, "deps", "surfaces", 'AMINO_FlexAID.def')
-        flexaid_dat_path = os.path.join(main_folder_path, "deps", "surfaces", 'FlexAID.dat')
         open_def_file = open(def_file, "r")
         ligand_file_name = os.path.join(os.path.dirname(target_file), lig)
         create_ligand_file(target_file, ligand_file_name)
@@ -133,8 +132,7 @@ def write_b_factor(target, dyna_sig, temp_path, labels):
 
 def run_dynamical_signature(target_file, beta, main_folder_path, temp_path, list_het=None):
     start_time = time.time()
-    _, filename = os.path.split(target_file)
-    target = os.path.splitext(filename)[0]
+    target = os.path.splitext(os.path.basename(target_file))[0]
     model = encom_model(target_file, main_folder_path, temp_path, list_het)
     dyna_sig = model.compute_bfactors_boltzmann(beta=float(beta))
     svib = model.compute_vib_entropy(beta=float(beta))
