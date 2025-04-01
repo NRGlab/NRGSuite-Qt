@@ -93,10 +93,21 @@ class FlexAIDManager:
         self.color_list = color_list
         self.model.clear()
         self.target_name = self.form.flexaid_select_target.currentText()
+        self.ligand_name = self.form.flexaid_select_ligand.currentText()
+        self.binding_site_name = self.form.flexaid_select_binding_site.currentText()
         self.target_save_path = os.path.join(self.flexaid_temp_path, 'flexaid_target.pdb')
         self.threads = []
 
     def start_run(self):
+        item_labels = ['Target', 'Ligand', 'Binding Site']
+        items_to_check = [self.target_name, self.ligand_name, self.binding_site_name]
+        for item_counter, item in enumerate(items_to_check):
+            if item == '':
+                general_functions.output_message(self.form.output_box, f'{item_labels[item_counter]} not selected from the dropdown menus', 'warning')
+                return
+            if item not in cmd.get_object_list('all'):
+                general_functions.output_message(self.form.output_box, f'{item_labels[item_counter]} is not currently loaded in pymol', 'warning')
+                return
         self.start_file_updater()
         self.start_flexaid_thread()
 
@@ -113,10 +124,8 @@ class FlexAIDManager:
 
     def start_flexaid_thread(self):
         cmd.save(self.target_save_path, self.target_name)
-        self.ligand_name = self.form.flexaid_select_ligand.currentText()
         ligand_save_path = os.path.join(self.flexaid_temp_path, 'flexaid_ligand.pdb')
         cmd.save(ligand_save_path, self.ligand_name)
-        self.binding_site_name = self.form.flexaid_select_binding_site.currentText()
         binding_site_path = os.path.join(self.flexaid_temp_path, 'binding_site_sph_.pdb')
         cmd.save(binding_site_path, self.binding_site_name)
         self.toggle_buttons(True)
@@ -132,9 +141,11 @@ class FlexAIDManager:
         self.worker.start()
 
     def get_simulation_settings(self):
-        setting_dictionary = {'number_chromosomes': int(self.form.input_num_chromosomes.text()),
+        setting_dictionary = {'max_results': int(self.form.flexaid_max_results.text()),
+                              'number_chromosomes': int(self.form.input_num_chromosomes.text()),
                               'number_generations': int(self.form.input_num_generations.text()),
-                              'max_results': int(self.form.flexaid_max_results.text())}
+                              'include_waters': self.form.flexaid_include_waters.isChecked()
+                              }
         return setting_dictionary
 
 
@@ -320,7 +331,7 @@ class FlexAIDWorkerThread(QThread):
         return count
 
     def write_config(self, target_inp_path, cleft, ligand_inp_path, max_results, flexaid_output_path,
-                     flexaid_result_path, flexaid_deps_path):
+                     flexaid_result_path, flexaid_deps_path, setting_dictionary):
         with open(os.path.join(flexaid_deps_path, 'template_config.inp'), "r") as t1:
             lines = t1.readlines()
         config_file_output_path = os.path.join(flexaid_output_path, 'config.inp')
@@ -349,6 +360,8 @@ class FlexAIDWorkerThread(QThread):
                     t2.write(f'MAXRES {max_results}\n')
                 elif line.startswith('TEMPOP'):
                     t2.write(f'TEMPOP {os.path.join(flexaid_result_path, "temp")}\n')
+                    if setting_dictionary['include_waters']:
+                        t2.write('INCHOH\n')
                 else:
                     t2.write(line)
         return config_file_output_path
@@ -386,8 +399,8 @@ class FlexAIDWorkerThread(QThread):
             ligand_inp_path = os.path.splitext(self.ligand_save_path)[0] + '.inp'
             config_file_path = self.write_config(target_inp_path, self.binding_site_path, ligand_inp_path, self.max_results,
                                                  self.flexaid_temp_path, self.flexaid_result_path,
-                                                 flexaid_deps_path).replace('\\', '/')
-
+                                                 flexaid_deps_path, self.setting_dictionary)
+            config_file_path = config_file_path.replace('\\', '/')
             ga_path = os.path.join(self.flexaid_temp_path, 'ga_inp.dat').replace('\\', '/')
             self.edit_ga(os.path.join(flexaid_deps_path, 'ga_inp.dat'), ga_path, self.setting_dictionary)
             flexaid_command = [flexaid_binary_path, config_file_path, ga_path, flexaid_result_name_path]

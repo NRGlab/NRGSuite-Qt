@@ -62,7 +62,7 @@ class Controller:
         self.form.nrgrank_result_table.setModel(self.model)
         self.form.flexaid_result_table.setModel(self.model)
         self.setupConnections()
-        self.form.stackedWidget.setCurrentIndex(8)
+        self.form.stackedWidget.setCurrentIndex(7)
 
     def setupConnections(self):
         self.form.button_getcleft.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(0))
@@ -72,8 +72,10 @@ class Controller:
         self.form.button_nrgten.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(4))
         self.form.button_modeller.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(5))
         self.form.button_ISOMIF.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(6))
-        self.form.button_settings.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(7))
-        self.form.button_home.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(8))
+        self.form.button_home.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(7))
+        self.form.button_settings.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(8))
+        self.form.button_tools.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(9))
+
 
         # Save/load session
         self.form.button_save.clicked.connect(lambda: general_functions.show_save_dialog(self.form, self.form.temp_line_edit.text()))
@@ -121,10 +123,11 @@ class Controller:
 
         # Surfaces
         self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_object_1, self.form.output_box))
-        self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
+        self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_1, self.form.output_box, lig=1, add_none=1, prefer_none=True, no_warning=True))
         self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_object_2, self.form.output_box, add_none=1))
-        self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
+        self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_2, self.form.output_box, lig=1, add_none=1, prefer_none=True, no_warning=True))
         self.form.surfaces_button_run.clicked.connect(lambda: run_Surfaces.load_surfaces(self.form, self.form.temp_line_edit.text(), install_dir, self.binary_folder_path, self.binary_suffix))
+        #issue with choosing which table to show see spike case study pt 2
         self.form.surface_select_individual_result.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
             os.path.join(self.form.temp_line_edit.text(), 'Surfaces'), self.form.surface_select_individual_result.currentText() + '.txt')))
         self.form.surface_select_cf_comparison.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
@@ -138,16 +141,13 @@ class Controller:
         self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_1, self.form.output_box))
         self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, no_warning=True, lig=1, add_none=1, prefer_none=True))
         self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1, prefer_mutants=True))
-        self.form.NRGten_dynasig_run.clicked.connect(lambda: run_NRGTEN.dynamical_signature(self.form, install_dir))
-        self.form.NRGten_dynasig_run_thread.clicked.connect(self.run_NRGTen)
+        self.form.NRGten_dynasig_run.clicked.connect(self.run_NRGTen)
         self.form.NRGten_conf_ensem_run.clicked.connect(lambda: run_NRGTEN.conformational_ensemble(self.form, install_dir))
 
         # Single Mutations
         self.form.Modeller_refresh_object.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_object, self.form.output_box))
         self.form.Modeller_refresh_residue.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_residue, self.form.output_box, lig=1))
         self.form.modeller_checkbox_all.clicked.connect(lambda: run_modeller.check_all(self.form))
-        self.form.mutate_old.clicked.connect(
-            lambda: run_modeller.model_mutations(self.form, self.form.temp_line_edit.text()))
         self.form.modeller_button_mutate.clicked.connect(self.run_single_mutation)
 
         # IsoMIF
@@ -163,6 +163,9 @@ class Controller:
         self.form.Settings_button_refresh_obj.clicked.connect(lambda: run_settings.refresh_objects(self.form))
         self.form.Settings_button_combine_obj.clicked.connect(lambda: run_settings.combine_objects(self.form))
         self.form.Settings_split_states_button.clicked.connect(lambda: run_settings.devide_states(self.form))
+
+        self.form.Settings_refresh_hetatm.clicked.connect(lambda: run_settings.refresh_hetatm(self.form))
+        self.form.Settings_button_remove_hetatm.clicked.connect(lambda: run_settings.remove_het_atoms(self.form))
 
     def run_getcleft(self):
         try:

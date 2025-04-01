@@ -5,25 +5,62 @@ import os
 from srcs.surfaces import run_Surfaces
 
 
+def refresh_hetatm(form, silence_warnings=False):
+    selection = form.Settings_tableView.selectionModel().selectedRows()
+    if len(selection) != 1:
+        general_functions.output_message(form.output_box, 'Only one object may be selected at a time to use this function', 'warning')
+    else:
+        selected_obj = form.Settings_tableView.model().data(selection[0])
+        dropdown_to_refresh = form.Settings_list_hetatm
+        hetatms = sorted(list(set(atom.resn for atom in cmd.get_model(f"{selected_obj} and hetatm").atom)))
+        if len(hetatms) > 0:
+            hetatms.append('All')
+            dropdown_to_refresh.clear()
+            dropdown_to_refresh.addItems(hetatms)
+            dropdown_to_refresh.setCurrentIndex(0)
+        else:
+            if not silence_warnings:
+                general_functions.output_message(form.output_box, 'No objects found', 'warning')
+
+
+def remove_het_atoms(form):
+    selection = form.Settings_tableView.selectionModel().selectedRows()
+    if len(selection) != 1:
+        general_functions.output_message(form.output_box,
+                                         'Only one object may be selected at a time to use this function', 'warning')
+    else:
+        object_to_remove = form.Settings_list_hetatm.currentText()
+        if object_to_remove == 'All':
+            cmd.remove("hetatm")
+        else:
+            cmd.remove(f'resn {object_to_remove}')
+        refresh_hetatm(form, silence_warnings=True)
+
+
+############
+
 def refresh_objects(form):
-    model = QStandardItemModel()
-    model.setHorizontalHeaderLabels(['Objects'])
     all_objects = cmd.get_object_list('all')
-    valid_objects = []
-    general_functions.refresh_dropdown_bd_site(form.Settings_wild_type_box,'','',add_none=True, show_all_objects=True)
+    if len(all_objects) == 0:
+        general_functions.output_message(form.output_box, 'No objects found', 'warning')
+    else:
+        model = QStandardItemModel()
+        model.setHorizontalHeaderLabels(['Objects'])
+        valid_objects = []
+        general_functions.refresh_dropdown_bd_site(form.Settings_wild_type_box,'','',add_none=True, show_all_objects=True)
 
-    # Loop through the lines and add them as items to the model
-    for obj in all_objects:
-        if cmd.get_type(obj) not in ['group', 'object:measurement', 'selection']:
-            valid_objects.append(obj)
+        for obj in all_objects:
+            if cmd.get_type(obj) not in ['group', 'object:measurement', 'selection']:
+                valid_objects.append(obj)
 
-    for obj in valid_objects:
-        # Create an item with the line text
-        item = QStandardItem(obj)
-        # Add the item to the model
-        model.appendRow(item)
-    form.Settings_tableView.setModel(model)
-    form.Settings_tableView.setColumnWidth(0, 550)
+        for obj in valid_objects:
+            item = QStandardItem(obj)
+            model.appendRow(item)
+        form.Settings_tableView.setModel(model)
+        form.Settings_tableView.setColumnWidth(0, 550)
+        form.tool_group_1.setEnabled(True)
+        form.tool_group_2.setEnabled(True)
+        form.tool_group_3.setEnabled(True)
 
 
 def combine_objects(form):
@@ -58,6 +95,4 @@ def devide_states(form):
                     cmd.set_name(obj+"_{:04}".format(state+1),obj+f'_{diff}')
                     state_obj=obj+f'_{diff}'
                     os.remove(state_file)
-            cmd.group(f'{selected_obj}states',state_obj)
-
-
+            cmd.group(f'{obj}states',state_obj)
