@@ -38,17 +38,30 @@ class ConfGeneratorManager:
         self.new_smiles_file_path = os.path.join(self.new_ligand_folder_path, os.path.basename(smiles_path))
         shutil.copy(smiles_path, self.new_smiles_file_path)
 
+    def check_openbabel_installed(self):
+        try:
+            result = subprocess.run(['obabel', '--version'], capture_output=True, text=True)
+            if result.returncode == 0:
+                return True
+            else:
+                output_message(self.form.output_box, "OpenBabel is required and does not appear to be installed or not in PATH (Windows). If you have just installed it try rebooting", "error")
+                return False
+        except FileNotFoundError:
+            output_message(self.form.output_box, "OpenBabel is required and does not appear to be installed or not in PATH (Windows). If you have just installed it try rebooting", "error")
+            return False
+
     def generate_conformer(self):
-        self.generate_conformer_thread = GenerateConformerThread(self.install_dir,
-                                                                 self.new_smiles_file_path,
-                                                                 self.new_ligand_folder_path,
-                                                                 self.smiles_column_number,
-                                                                 self.name_column_number,
-                                                                 self.molecular_weight_max,
-                                                                 self.heavy_atoms_min)
-        self.generate_conformer_thread.message_signal.connect(self.handle_message_signal)
-        self.generate_conformer_thread.finished_signal.connect(self.handle_thread_finished)
-        self.generate_conformer_thread.start()
+        if self.check_openbabel_installed():
+            self.generate_conformer_thread = GenerateConformerThread(self.install_dir,
+                                                                     self.new_smiles_file_path,
+                                                                     self.new_ligand_folder_path,
+                                                                     self.smiles_column_number,
+                                                                     self.name_column_number,
+                                                                     self.molecular_weight_max,
+                                                                     self.heavy_atoms_min)
+            self.generate_conformer_thread.message_signal.connect(self.handle_message_signal)
+            self.generate_conformer_thread.finished_signal.connect(self.handle_thread_finished)
+            self.generate_conformer_thread.start()
 
     def handle_message_signal(self, message, message_type):
         output_message(self.form.output_box, message, message_type)
