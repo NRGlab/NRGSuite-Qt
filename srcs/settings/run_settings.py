@@ -29,11 +29,12 @@ def remove_het_atoms(form):
         general_functions.output_message(form.output_box,
                                          'Only one object may be selected at a time to use this function', 'warning')
     else:
-        object_to_remove = form.Settings_list_hetatm.currentText()
-        if object_to_remove == 'All':
-            cmd.remove("hetatm")
+        selected_obj = form.Settings_tableView.model().data(selection[0])
+        molecule_to_remove = form.Settings_list_hetatm.currentText( )
+        if molecule_to_remove == 'All':
+            cmd.remove(f"hetatm and {selected_obj}")
         else:
-            cmd.remove(f'resn {object_to_remove}')
+            cmd.remove(f'resn {molecule_to_remove} and {selected_obj}')
         refresh_hetatm(form, silence_warnings=True)
 
 

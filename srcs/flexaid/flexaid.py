@@ -73,6 +73,7 @@ def flexaid_show_ligand_from_table(form):
 class FlexAIDManager:
     def __init__(self, form, binary_folder_path, binary_suffix, install_dir, color_list, model):
         self.form = form
+        general_functions.output_message(self.form.output_box, f"=========== FlexAID ===========", 'valid')
         self.model = model
         self.flexaid_temp_path = os.path.join(self.form.temp_line_edit.text(), 'FlexAID')
         self.flexaid_simulation_folder = os.path.join(self.flexaid_temp_path, 'Simulation')
@@ -129,7 +130,6 @@ class FlexAIDManager:
         binding_site_path = os.path.join(self.flexaid_temp_path, 'binding_site_sph_.pdb')
         cmd.save(binding_site_path, self.binding_site_name)
         self.toggle_buttons(True)
-        general_functions.output_message(self.form.output_box, f"=========== FlexAID ===========", 'valid')
         general_functions.output_message(self.form.output_box, 'Docking...', 'valid')
         self.form.flexaid_tab.setCurrentIndex(2)
         self.form.flexaid_tab.setTabEnabled(2, True)

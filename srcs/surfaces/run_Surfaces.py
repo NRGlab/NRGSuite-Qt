@@ -148,9 +148,13 @@ def get_chains_from_object(object_name):
 
 
 def load_surfaces(form, temp_path, main_folder_path, binary_folder_path, binary_suffix):
+    general_functions.output_message(form.output_box, '=========== Surfaces ===========', 'valid')
     start_time = time.time()
     vcon_binary_path = os.path.join(binary_folder_path, f'vcon{binary_suffix}')
     target = form.surface_select_object_1.currentText()
+    if target == '':
+        general_functions.output_message(form.output_box, 'No object selected', 'warning')
+        return
     lig = form.surface_select_ligand_object_1.currentText()
     target_2 = form.surface_select_object_2.currentText()
     lig_2 = form.surface_select_ligand_object_2.currentText()
@@ -226,7 +230,6 @@ def load_surfaces(form, temp_path, main_folder_path, binary_folder_path, binary_
     cmd.disable(f'GetCleft,NRGRank,FlexAID')
     end_time = time.time()
     execution_time = end_time - start_time
-    general_functions.output_message(form.output_box, '=========== Surfaces ===========', 'valid')
     general_functions.output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
     general_functions.output_message(form.output_box, '=========== END Surfaces ===========', 'valid')
     form.Surfaces_tabs.setCurrentIndex(1)

@@ -6,18 +6,18 @@ sys.path.append(install_dir)
 
 import shutil
 import subprocess
+import platform
+import general_functions
 from srcs.flexaid.flexaid import FlexAIDManager, stop_simulation, abort_simulation, pause_resume_simulation, flexaid_show_ligand_from_table
 from srcs.getcleft import getcleft
 from srcs.nrgrank import nrgrank_on_target
 from srcs.getcleft import spheres
-import general_functions
 from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
 from srcs.nrgten.NRGten_thread import DynasigManager
 from srcs.nrgsuite_modeller.run_modeller import single_mutationManager
 from srcs.settings import run_settings
-import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.uic import loadUi
@@ -63,6 +63,7 @@ class Controller:
         self.form.flexaid_result_table.setModel(self.model)
         self.setupConnections()
         self.form.stackedWidget.setCurrentIndex(7)
+        self.advanced_settings_dialog = None
 
     def setupConnections(self):
         self.form.button_getcleft.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(0))
@@ -166,6 +167,14 @@ class Controller:
 
         self.form.Settings_refresh_hetatm.clicked.connect(lambda: run_settings.refresh_hetatm(self.form))
         self.form.Settings_button_remove_hetatm.clicked.connect(lambda: run_settings.remove_het_atoms(self.form))
+        self.form.adv_ga_edit_button.clicked.connect(self.settings_edit_all_dialog)
+
+    def settings_edit_all_dialog(self):
+        from ga_settings_editor import SettingsGUI
+        if self.advanced_settings_dialog is None:
+            flexaid_ga_path = os.path.join(install_dir, 'deps', 'flexaid', 'ga_inp.dat')
+            self.advanced_settings_dialog = SettingsGUI(flexaid_ga_path, self.form)
+        self.advanced_settings_dialog.show()
 
     def run_getcleft(self):
         try:
@@ -184,6 +193,10 @@ class Controller:
         self.nrgrankrunner = None
 
     def run_generate_conformers(self):
+        smiles_path = self.form.nrgrank_add_ligand_file_path.text()
+        if smiles_path == '':
+            general_functions.output_message(self.form.output_box, 'Missing Smiles file path', 'warning')
+            return
         self.conformer_generator = nrgrank_smiles_management.ConfGeneratorManager(self.form, install_dir, self.ligand_set_folder_path)
         self.conformer_generator.generate_conformer()
 
@@ -192,6 +205,7 @@ class Controller:
         self.flexaid_manager.start_run()
 
     def run_NRGTen(self):
+        general_functions.output_message(self.form.output_box, "=========== DynaSig ===========", 'valid')
         target_1 = self.form.NRGten_select_target_object_1.currentText()
         if target_1 == '':
             general_functions.output_message(self.form.output_box, 'No Object selected under: Load Object', 'warning')
@@ -200,12 +214,14 @@ class Controller:
             self.nrgtenrunner.run_nrgten()
 
     def run_single_mutation(self):
+        general_functions.output_message(self.form.output_box, '=========== Single Mutations ===========', 'valid')
+        object_names = ['Object to mutate', 'Selected residue(s)']
         objects_to_check = ['Modeller_select_object', 'Modeller_select_residue']
         ok_continue = True
-        for obj in objects_to_check:
+        for obj_counter, obj in enumerate(objects_to_check):
             obj_attribute = getattr(self.form, obj)
             if obj_attribute.currentText() == '':
-                general_functions.output_message(self.form.output_box, 'Missing object in box. Cannot run', 'warning')
+                general_functions.output_message(self.form.output_box, f'{object_names[obj_counter]} not selected. Cannot run', 'warning')
                 ok_continue = False
         if ok_continue:
             self.single_mutation_runner = single_mutationManager(self.form, install_dir)
@@ -224,6 +240,7 @@ class NRGSuitePlugin(QWidget):
         self.get_folders()
         self.manage_dirs()
         self.check_modeller()
+        self.set_flexaid_ga_params()
         self.form.stackedWidget.setCurrentIndex(0)
         self.form.flexaid_tab.setTabEnabled(2, False)
         self.form.NRGRank_tabs.setTabEnabled(2, False)
@@ -284,3 +301,14 @@ class NRGSuitePlugin(QWidget):
             self.form.NRGten_optmizestates.setEnabled(False)
             self.form.button_modeller.setEnabled(False)
             self.form.button_modeller.setStyleSheet("background-color: black; color: white;")
+
+    def set_flexaid_ga_params(self):
+        flexaid_ga_path = os.path.join(install_dir, 'deps', 'flexaid', 'ga_inp.dat')
+        with open(flexaid_ga_path, 'r') as f:
+            for line in f:
+                if line.startswith('NUMCHROM'):
+                    value = line.strip().split()[-1]
+                    self.form.input_num_chromosomes.setText(str(value))
+                if line.startswith('NUMGENER'):
+                    value = line.strip().split()[-1]
+                    self.form.input_num_generations.setText(str(value))

@@ -43,6 +43,7 @@ class NRGRankManager:
     def __init__(self, form, install_dir, ligand_set_folder_path, model):
         super().__init__()
         self.form = form
+        general_functions.output_message(form.output_box, "=========== NRGRank ===========", 'valid')
         self.install_dir = install_dir
         self.ligand_set_folder_path = ligand_set_folder_path
         self.model = model
@@ -251,7 +252,6 @@ class NRGRankThread(QThread):
 
     def run(self):
         start_time = time.time()
-        self.message_signal.emit("=========== NRGRank ===========")
         self.message_signal.emit(f"Processing Target")
         self.process_target_process = subprocess.Popen([sys.executable,
                                                         os.path.join(self.install_dir, 'srcs', 'nrgrank', 'process_target.py'),
