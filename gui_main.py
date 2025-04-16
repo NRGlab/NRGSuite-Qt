@@ -6,17 +6,18 @@ sys.path.append(install_dir)
 
 import shutil
 import subprocess
+import platform
+import general_functions
 from srcs.flexaid.flexaid import FlexAIDManager, stop_simulation, abort_simulation, pause_resume_simulation, flexaid_show_ligand_from_table
 from srcs.getcleft import getcleft
 from srcs.nrgrank import nrgrank_on_target
 from srcs.getcleft import spheres
-import general_functions
 from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
 from srcs.nrgten.NRGten_thread import DynasigManager
+from srcs.nrgsuite_modeller.run_modeller import single_mutationManager
 from srcs.settings import run_settings
-import platform
 from PyQt5.QtWidgets import QWidget, QTableWidget
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.uic import loadUi
@@ -61,7 +62,8 @@ class Controller:
         self.form.nrgrank_result_table.setModel(self.model)
         self.form.flexaid_result_table.setModel(self.model)
         self.setupConnections()
-        self.form.stackedWidget.setCurrentIndex(8)
+        self.form.stackedWidget.setCurrentIndex(7)
+        self.advanced_settings_dialog = None
 
     def setupConnections(self):
         self.form.button_getcleft.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(0))
@@ -71,8 +73,10 @@ class Controller:
         self.form.button_nrgten.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(4))
         self.form.button_modeller.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(5))
         self.form.button_ISOMIF.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(6))
-        self.form.button_settings.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(7))
-        self.form.button_home.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(8))
+        self.form.button_home.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(7))
+        self.form.button_settings.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(8))
+        self.form.button_tools.clicked.connect(lambda: self.form.stackedWidget.setCurrentIndex(9))
+
 
         # Save/load session
         self.form.button_save.clicked.connect(lambda: general_functions.show_save_dialog(self.form, self.form.temp_line_edit.text()))
@@ -120,10 +124,11 @@ class Controller:
 
         # Surfaces
         self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_object_1, self.form.output_box))
-        self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
+        self.form.surfaces_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_1, self.form.output_box, lig=1, add_none=1, prefer_none=True, no_warning=True))
         self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_object_2, self.form.output_box, add_none=1))
-        self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_2, self.form.output_box, lig=1, add_none=1))
+        self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_2, self.form.output_box, lig=1, add_none=1, prefer_none=True, no_warning=True))
         self.form.surfaces_button_run.clicked.connect(lambda: run_Surfaces.load_surfaces(self.form, self.form.temp_line_edit.text(), install_dir, self.binary_folder_path, self.binary_suffix))
+        #issue with choosing which table to show see spike case study pt 2
         self.form.surface_select_individual_result.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
             os.path.join(self.form.temp_line_edit.text(), 'Surfaces'), self.form.surface_select_individual_result.currentText() + '.txt')))
         self.form.surface_select_cf_comparison.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
@@ -135,17 +140,16 @@ class Controller:
 
         # NRGTEN
         self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_1, self.form.output_box))
-        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, lig=1, add_none=1))
-        self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1))
-        self.form.NRGten_dynasig_run.clicked.connect(lambda: run_NRGTEN.dynamical_signature(self.form, install_dir))
-        self.form.NRGten_dynasig_run_thread.clicked.connect(self.run_NRGTen)
+        self.form.NRGten_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_ligand_object_1, self.form.output_box, no_warning=True, lig=1, add_none=1, prefer_none=True))
+        self.form.NRGten_target_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.NRGten_select_target_object_2, self.form.output_box, add_none=1, prefer_mutants=True))
+        self.form.NRGten_dynasig_run.clicked.connect(self.run_NRGTen)
         self.form.NRGten_conf_ensem_run.clicked.connect(lambda: run_NRGTEN.conformational_ensemble(self.form, install_dir))
 
         # Single Mutations
         self.form.Modeller_refresh_object.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_object, self.form.output_box))
         self.form.Modeller_refresh_residue.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.Modeller_select_residue, self.form.output_box, lig=1))
-        self.form.modeller_button_mutate.clicked.connect(lambda: run_modeller.model_mutations(self.form, self.form.temp_line_edit.text()))
         self.form.modeller_checkbox_all.clicked.connect(lambda: run_modeller.check_all(self.form))
+        self.form.modeller_button_mutate.clicked.connect(self.run_single_mutation)
 
         # IsoMIF
         self.form.ISOMIF_target_refresh_object_1.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.ISOMIF_select_target_object_1, self.form.output_box))
@@ -160,6 +164,17 @@ class Controller:
         self.form.Settings_button_refresh_obj.clicked.connect(lambda: run_settings.refresh_objects(self.form))
         self.form.Settings_button_combine_obj.clicked.connect(lambda: run_settings.combine_objects(self.form))
         self.form.Settings_split_states_button.clicked.connect(lambda: run_settings.devide_states(self.form))
+
+        self.form.Settings_refresh_hetatm.clicked.connect(lambda: run_settings.refresh_hetatm(self.form))
+        self.form.Settings_button_remove_hetatm.clicked.connect(lambda: run_settings.remove_het_atoms(self.form))
+        self.form.adv_ga_edit_button.clicked.connect(self.settings_edit_all_dialog)
+
+    def settings_edit_all_dialog(self):
+        from ga_settings_editor import SettingsGUI
+        if self.advanced_settings_dialog is None:
+            flexaid_ga_path = os.path.join(install_dir, 'deps', 'flexaid', 'ga_inp.dat')
+            self.advanced_settings_dialog = SettingsGUI(flexaid_ga_path, self.form)
+        self.advanced_settings_dialog.show()
 
     def run_getcleft(self):
         try:
@@ -178,6 +193,10 @@ class Controller:
         self.nrgrankrunner = None
 
     def run_generate_conformers(self):
+        smiles_path = self.form.nrgrank_add_ligand_file_path.text()
+        if smiles_path == '':
+            general_functions.output_message(self.form.output_box, 'Missing Smiles file path', 'warning')
+            return
         self.conformer_generator = nrgrank_smiles_management.ConfGeneratorManager(self.form, install_dir, self.ligand_set_folder_path)
         self.conformer_generator.generate_conformer()
 
@@ -186,12 +205,27 @@ class Controller:
         self.flexaid_manager.start_run()
 
     def run_NRGTen(self):
+        general_functions.output_message(self.form.output_box, "=========== DynaSig ===========", 'valid')
         target_1 = self.form.NRGten_select_target_object_1.currentText()
         if target_1 == '':
             general_functions.output_message(self.form.output_box, 'No Object selected under: Load Object', 'warning')
         else:
             self.nrgtenrunner = DynasigManager(self.form, install_dir)
             self.nrgtenrunner.run_nrgten()
+
+    def run_single_mutation(self):
+        general_functions.output_message(self.form.output_box, '=========== Single Mutations ===========', 'valid')
+        object_names = ['Object to mutate', 'Selected residue(s)']
+        objects_to_check = ['Modeller_select_object', 'Modeller_select_residue']
+        ok_continue = True
+        for obj_counter, obj in enumerate(objects_to_check):
+            obj_attribute = getattr(self.form, obj)
+            if obj_attribute.currentText() == '':
+                general_functions.output_message(self.form.output_box, f'{object_names[obj_counter]} not selected. Cannot run', 'warning')
+                ok_continue = False
+        if ok_continue:
+            self.single_mutation_runner = single_mutationManager(self.form, install_dir)
+            self.single_mutation_runner.run_single_mutation()
 
 
 class NRGSuitePlugin(QWidget):
@@ -206,6 +240,7 @@ class NRGSuitePlugin(QWidget):
         self.get_folders()
         self.manage_dirs()
         self.check_modeller()
+        self.set_flexaid_ga_params()
         self.form.stackedWidget.setCurrentIndex(0)
         self.form.flexaid_tab.setTabEnabled(2, False)
         self.form.NRGRank_tabs.setTabEnabled(2, False)
@@ -216,6 +251,8 @@ class NRGSuitePlugin(QWidget):
         self.form.nrgrank_progress_label.setText('')
         self.form.nrgrank_loading_gif.setText('')
         self.form.nrgrank_progress.hide()
+        self.form.mutation_progress_label.setText('')
+        self.form.mutation_progress.hide()
         self.controller = Controller(self.form, self.binary_folder_path, self.binary_suffix, self.operating_system, self.ligand_set_folder_path, self.color_list)
 
     def get_os(self):
@@ -264,3 +301,14 @@ class NRGSuitePlugin(QWidget):
             self.form.NRGten_optmizestates.setEnabled(False)
             self.form.button_modeller.setEnabled(False)
             self.form.button_modeller.setStyleSheet("background-color: black; color: white;")
+
+    def set_flexaid_ga_params(self):
+        flexaid_ga_path = os.path.join(install_dir, 'deps', 'flexaid', 'ga_inp.dat')
+        with open(flexaid_ga_path, 'r') as f:
+            for line in f:
+                if line.startswith('NUMCHROM'):
+                    value = line.strip().split()[-1]
+                    self.form.input_num_chromosomes.setText(str(value))
+                if line.startswith('NUMGENER'):
+                    value = line.strip().split()[-1]
+                    self.form.input_num_generations.setText(str(value))

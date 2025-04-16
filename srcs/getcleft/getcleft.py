@@ -10,6 +10,7 @@ import re
 class GetCleftRunner:
     def __init__(self, form, binary_folder_path, binary_suffix, install_dir, color_list):
         super().__init__()
+        general_functions.output_message(form.output_box, '=========== GetCleft ===========', 'valid')
         self.form = form
         self.binary_folder_path = binary_folder_path
         self.binary_suffix = binary_suffix
@@ -119,7 +120,6 @@ class GetCleftWorker(QThread):
         object_save_path = os.path.join(getcleft_output_path, 'tmp.pdb')
         cmd.save(object_save_path, self.pymol_object)
         getcleft_command = self.get_arg_str(getcleft_binary_path, object_save_path, cleft_save_path, self.parameter_dictionary)
-        self.message_signal.emit('=========== GetCleft ===========', 'valid')
         self.message_signal.emit('Starting to generate clefts', 'valid')
         start_time = time.time()
         subprocess.run(getcleft_command, check=True)
