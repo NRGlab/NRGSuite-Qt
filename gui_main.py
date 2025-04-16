@@ -86,6 +86,7 @@ class Controller:
         self.form.button_hide.clicked.connect(lambda: general_functions.pymol_hide_structures(self.form))
         self.form.cleft_button_refresh.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.cleft_select_object, self.form.output_box))
         self.form.button_start.clicked.connect(self.run_getcleft)
+        #TODO: colour with cleft and name to be able to delete not important ones
 
         # Partition Cleft
         self.form.cleft_partition_button_add.clicked.connect(
@@ -103,6 +104,7 @@ class Controller:
         self.form.nrgrank_ligand_set_refresh.clicked.connect(lambda: general_functions.refresh_folder(self.ligand_set_folder_path, self.form.nrgrank_select_ligand))
         self.form.nrgrank_button_start.clicked.connect(self.run_nrgrank)
         self.form.nrgrank_button_cancel.clicked.connect(self.abort_nrgrank)
+        #TODO: in result table for FDA set show chemical name
         self.form.nrgrank_result_browse_button.clicked.connect(lambda: general_functions.folder_browser(self.form.nrgrank_result_path, os.path.join(self.form.temp_line_edit.text(), 'NRGRank'), "CSV file (*.csv)"))
         self.form.nrgrank_result_table.selectionModel().selectionChanged.connect(lambda: nrgrank_on_target.show_ligand_from_table(self.form.nrgrank_result_table, self.form.nrgrank_select_binding_site.currentText(), self.form.nrgrank_select_ligand.currentText()))
 
@@ -129,6 +131,7 @@ class Controller:
         self.form.surfaces_refresh_object_2.clicked.connect(lambda: general_functions.refresh_dropdown(self.form.surface_select_ligand_object_2, self.form.output_box, lig=1, add_none=1, prefer_none=True, no_warning=True))
         self.form.surfaces_button_run.clicked.connect(lambda: run_Surfaces.load_surfaces(self.form, self.form.temp_line_edit.text(), install_dir, self.binary_folder_path, self.binary_suffix))
         #issue with choosing which table to show see spike case study pt 2
+        #TODO: Center ligand when ligand is specified and object 2 is empty
         self.form.surface_select_individual_result.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
             os.path.join(self.form.temp_line_edit.text(), 'Surfaces'), self.form.surface_select_individual_result.currentText() + '.txt')))
         self.form.surface_select_cf_comparison.currentIndexChanged.connect(lambda: run_Surfaces.load_csv_data(self.form, os.path.join(
@@ -164,7 +167,7 @@ class Controller:
         self.form.Settings_button_refresh_obj.clicked.connect(lambda: run_settings.refresh_objects(self.form))
         self.form.Settings_button_combine_obj.clicked.connect(lambda: run_settings.combine_objects(self.form))
         self.form.Settings_split_states_button.clicked.connect(lambda: run_settings.devide_states(self.form))
-
+        #TODO: Add option to remove all except selected
         self.form.Settings_refresh_hetatm.clicked.connect(lambda: run_settings.refresh_hetatm(self.form))
         self.form.Settings_button_remove_hetatm.clicked.connect(lambda: run_settings.remove_het_atoms(self.form))
         self.form.adv_ga_edit_button.clicked.connect(self.settings_edit_all_dialog)
