@@ -12,6 +12,7 @@ sys.path.append(install_dir)
 from srcs.surfaces.ligand_atomtypes import add_pdb
 from srcs.surfaces.run_Surfaces import create_ligand_file, flex_res
 from general_functions import process_flexaid_result
+# vcon compiled on Windows with the developper command prompt breaks vcon
 
 
 def generate_massfile(pdb_filename, mass_filename):
@@ -55,7 +56,6 @@ def find_het( target_file, temp_path, main_folder_path):
                 het_dic[line[17:20]] = '1'
     for lig in list(het_dic):
         def_file = os.path.join(main_folder_path, "deps", "surfaces", 'AMINO_FlexAID.def')
-        flexaid_dat_path = os.path.join(main_folder_path, "deps", "surfaces", 'FlexAID.dat')
         open_def_file = open(def_file, "r")
         ligand_file_name = os.path.join(os.path.dirname(target_file), lig)
         create_ligand_file(target_file, ligand_file_name)
@@ -132,15 +132,15 @@ def write_b_factor(target, dyna_sig, temp_path, labels):
 
 def run_dynamical_signature(target_file, beta, main_folder_path, temp_path, list_het=None):
     start_time = time.time()
-    _, filename = os.path.split(target_file)
-    target = os.path.splitext(filename)[0]
+    target = os.path.splitext(os.path.basename(target_file))[0]
     model = encom_model(target_file, main_folder_path, temp_path, list_het)
     dyna_sig = model.compute_bfactors_boltzmann(beta=float(beta))
     svib = model.compute_vib_entropy(beta=float(beta))
-    b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model.get_mass_labels())
+    model_mass_label = model.get_mass_labels()
+    b_fact_dictionary = write_b_factor(target, dyna_sig, temp_path, model_mass_label)
     pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
     with open(pickle_file_path, "wb") as f:
-        pickle.dump((b_fact_dictionary, dyna_sig, model, svib), f)
+        pickle.dump((b_fact_dictionary, dyna_sig, model_mass_label, svib), f)
     end_time = time.time()
     execution_time = end_time - start_time
     with open(os.path.splitext(pickle_file_path)[0] + '.txt' , "w") as f:

@@ -208,6 +208,8 @@ def dynamical_signature(form, install_dir):
             cmd.save(output_file, target_2, state=state + 1)
             diff = compare_residues(target_file, output_file)
             diff_list.append(diff)
+            if os.path.isfile(os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')):
+                os.remove(os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             os.rename(output_file, os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb'))
             output_file = os.path.join(temp_path, 'NRGTEN', f'{target_2}_{diff}.pdb')
             b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = run_dynamical_signature(output_file, beta, main_folder_path, temp_path)
@@ -298,6 +300,10 @@ def run_dynamical_signature(target_file, beta, main_folder_path, temp_path):
 def conformational_ensemble(form, install_dir):
     start_time = time.time()
     target = form.NRGten_select_target_object_1.currentText()
+    output_message(form.output_box, '=========== Conformational Ensemble ===========', 'valid')
+    if target == '':
+        output_message(form.output_box, 'No Object selected in Load object', 'warning')
+        return
     modes_list = form.NRGten_modes_lineEdit.text()
     step = form.NRGten_step_lineEdit.text()
     max_conf = form.NRGten_max_conf_lineEdit.text()
@@ -322,6 +328,5 @@ def conformational_ensemble(form, install_dir):
         cmd.show('cartoon', f'{target}_conf_ensemble')
     end_time = time.time()
     execution_time = end_time - start_time
-    output_message(form.output_box, '=========== Conformational Ensemble ===========', 'valid')
     output_message(form.output_box, f"Execution time: {execution_time:.4f} seconds", 'valid')
     output_message(form.output_box, '=========== END Conformational Ensemble ===========', 'valid')

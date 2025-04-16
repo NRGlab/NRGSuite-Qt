@@ -78,12 +78,11 @@ def run_mif(target, output_box, cleft_file_path, mif_binary_path, mifView_binary
     cmd.group('IsoMIF', mif_group)
 
 
-def run_isomif(target,target_2, isomif_binary_path, isoMifView_binary_path, isomif_temp_result_path, python_version):
-    path_target_1 = fix_path(os.path.join(isomif_temp_result_path,target+"_h.mif"))
-    path_target_2 = fix_path(os.path.join(isomif_temp_result_path,target_2+"_h.mif"))
+def run_isomif(target, target_2, isomif_binary_path, isoMifView_binary_path, isomif_temp_result_path, python_version):
+    path_target_1 = fix_path(os.path.join(isomif_temp_result_path, target+"_h.mif"))
+    path_target_2 = fix_path(os.path.join(isomif_temp_result_path, target_2+"_h.mif"))
     output_path = fix_path(os.path.join(isomif_temp_result_path,"iso_"))
     command_isomif = f'{isomif_binary_path} -p1 {path_target_1} -p2 {path_target_2} -o {output_path} -c 2'
-    print(command_isomif)
     os.system(command_isomif)
 
     isomif_file = os.path.join(isomif_temp_result_path, f'iso_{target}_h_match_{target_2}_h.isomif')
@@ -123,6 +122,12 @@ def mif_plot(form, binary_folder_path, binary_suffix, install_dir):
     target_1 = form.ISOMIF_select_target_object_1.currentText()
     cleft_name_1 = form.ISOMIF_select_cleft_object_1.currentText()
     ligand_name_1 = form.ISOMIF_select_ligand_object_1.currentText()
+    if target_1 == '':
+        output_message(form.output_box, 'Missing Object in Object 1 selected', 'warning')
+        return
+    if cleft_name_1 == '':
+        output_message(form.output_box, 'No Cleft in Object 1 selected', 'warning')
+        return
 
     target_2 = form.ISOMIF_select_target_object_2.currentText()
     cleft_name_2 = form.ISOMIF_select_cleft_object_2.currentText()

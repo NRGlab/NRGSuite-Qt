@@ -28,12 +28,9 @@ class DynasigManager:
         else:
             number_of_cores = round(multiprocessing.cpu_count() * (cpu_usage_target / 100))
 
-        # self.initialise_progress_bar()
-        # self.start_loading_gif()
         general_functions.disable_run_mutate_buttons(self.form, disable=True)
-        self.dynasig_thread = DynasigThread(self.temp_path,self.target, self.beta, self.lig, self.target_2, self.main_folder_path, number_of_cores)
+        self.dynasig_thread = DynasigThread(self.temp_path, self.target, self.beta, self.lig, self.target_2, self.main_folder_path, number_of_cores)
         self.dynasig_thread.message_signal.connect(self.handle_message_signal)
-        # self.nrgrank_thread.screen_progress_signal.connect(self.handle_screen_progress_signal)
         self.dynasig_thread.finished_signal.connect(self.handle_thread_finished)
         self.dynasig_thread.start()
 
@@ -51,16 +48,11 @@ class DynasigManager:
         self.dynasig_thread.quit()
         self.dynasig_thread.wait()
         self.dynasig_thread = None
-        # self.form.nrgrank_progress.hide()
         general_functions.disable_run_mutate_buttons(self.form, enable=True)
-        # self.movie.stop()
-        # self.form.nrgrank_loading_gif.hide()
-        # self.form.nrgrank_button_cancel.setDisabled(True)
 
 
 class DynasigThread(QThread):
     message_signal = pyqtSignal(str)
-    # screen_progress_signal = pyqtSignal(int)
     finished_signal = pyqtSignal()
 
     def __init__(self, temp_path, target, beta, lig, target_2, main_folder_path, number_of_cores):
@@ -146,7 +138,7 @@ class DynasigThread(QThread):
             f.write("CENTER: {}\n".format(medoid.name))
             f.write("NAME: {}\n".format(medoid.name))
 
-    def find_het(self, target_file, temp_path, main_folder_path):
+    def find_het(self, target_file, main_folder_path):
         het_dic = {}
         with open(target_file, "r") as t1:
             texto = t1.readlines()
@@ -155,7 +147,6 @@ class DynasigThread(QThread):
                     het_dic[line[17:20]] = '1'
         for lig in list(het_dic):
             def_file = os.path.join(main_folder_path, "deps", "surfaces", 'AMINO_FlexAID.def')
-            flexaid_dat_path = os.path.join(main_folder_path, "deps", "surfaces", 'FlexAID.dat')
             open_def_file = open(def_file, "r")
             ligand_file_name = os.path.join(os.path.dirname(target_file), lig)
             create_ligand_file(target_file, ligand_file_name)
@@ -173,10 +164,10 @@ class DynasigThread(QThread):
         return list(het_dic)
 
     @staticmethod
-    def write_b_factor(target, dyna_sig, temp_path, labels):
-        target_file = os.path.join(temp_path, 'NRGTEN', f'{target}.pdb')
+    def write_b_factor(target, dyna_sig, nrgten_temp_path, labels):
+        target_file = os.path.join(nrgten_temp_path, f'{target}.pdb')
         b_factor_dict = {}
-        with open(os.path.join(temp_path, 'NRGTEN', target + '_dynasig.txt'), 'w') as t1:
+        with open(os.path.join(nrgten_temp_path, target + '_dynasig.txt'), 'w') as t1:
             for res in range(len(labels)):
                 t1.write('{} {}\n'.format(labels[res], dyna_sig[res]))
         for i in range(len(dyna_sig)):
@@ -196,15 +187,15 @@ class DynasigThread(QThread):
                     texto_list.append(line[:54] + lined + lined_abs + line[66:])
                 else:
                     texto_list.append(line)
-        output_path = os.path.join(temp_path, 'NRGTEN', f'{target}_dynasig.pdb')
+        output_path = os.path.join(nrgten_temp_path, f'{target}_dynasig.pdb')
         with open(output_path, 'w') as t2:
             for line in texto_list:
                 t2.write(line)
         return b_factor_dict
 
     @staticmethod
-    def process_state(state, state_pdb_file, svib_ref, dyna_sig_list_ref, list_het, temp_path, main_folder_path, beta):
-        print(f'===== State {state} =====')
+    def process_state(state, state_pdb_file, list_het, temp_path, main_folder_path, beta):
+        print(f'= State {state} started =')
         command = [sys.executable,
                    os.path.join(main_folder_path, 'srcs', 'nrgten', 'nrgten_separate.py'),
                    '-t', state_pdb_file,
@@ -212,14 +203,13 @@ class DynasigThread(QThread):
                    '-m', main_folder_path,
                    '-te', temp_path,
                    '-l', list_het]
-
         with subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                               close_fds=True) as proc:
             proc.wait()
         pickle_file_path = os.path.splitext(state_pdb_file)[0] + '.pkl'
         with open(pickle_file_path, "rb") as f:
-            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = pickle.load(f)
-        return b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig
+            b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig = pickle.load(f)
+        return b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig
 
     def run(self):
         start_time = time.time()
@@ -228,7 +218,7 @@ class DynasigThread(QThread):
         plots = []
         svib_list = []
         cmd.save(target_file, self.target)
-        list_het = self.find_het(target_file, self.temp_path, self.main_folder_path)
+        list_het = self.find_het(target_file, self.main_folder_path)
         list_het = json.dumps(list_het)
         process_init_dynamic_signature = subprocess.Popen([sys.executable,
                                                         os.path.join(self.main_folder_path, 'srcs', 'nrgten',
@@ -242,7 +232,7 @@ class DynasigThread(QThread):
             self.msleep(100)
         pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
         with open(pickle_file_path, "rb") as f:
-            b_fact_dictionary_ref, dyna_sig_list_ref, model_ref, svib_ref = pickle.load(f)
+            b_fact_dictionary_ref, dyna_sig_list_ref, model_ref_mass_labels, svib_ref = pickle.load(f)
         cmd.disable(self.target)
         selection = os.path.splitext(os.path.basename(target_file))[0] + '_dynasig'
         cmd.load(target_file[:-4] + '_dynasig.pdb')
@@ -252,7 +242,7 @@ class DynasigThread(QThread):
         if self.target_2 == 'None':
             target_name = self.target
             svib_list.append(svib_ref)
-            plots.append(go.Scatter(x=self.prep_labels(model_ref.get_mass_labels()), y=dyna_sig_list_ref, mode='lines',
+            plots.append(go.Scatter(x=self.prep_labels(model_ref_mass_labels), y=dyna_sig_list_ref, mode='lines',
                                     name=f'Svib {svib_ref}'))
 
             if self.lig != 'None':
@@ -264,23 +254,23 @@ class DynasigThread(QThread):
                                                                    '-m', self.main_folder_path,
                                                                    '-te', self.temp_path,
                                                                    '-l', list_het])
-                while self.is_running and process_init_dynamic_signature.poll() is None:
+                while self.is_running and p.poll() is None:
                     self.msleep(100)
                 pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
                 with open(pickle_file_path, "rb") as f:
-                    b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig, svib_no_lig = pickle.load(f)
+                    b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig = pickle.load(f)
                 svib_list.append(svib_no_lig)
                 filename = os.path.splitext(os.path.basename(output_file))[0]
 
                 for b_factor in range(len(dyna_sig_list_no_lig)):
-                    mass = model_no_lig.get_mass_labels()[b_factor]
+                    mass = model_no_lig_mass_label[b_factor]
                     key = '{}_{}_{}'.format(mass.split('|')[0][:3], mass.split('|')[2], mass.split('|')[1])
                     dyna_sig_list_no_lig[b_factor] = (b_fact_dictionary_ref[key] / dyna_sig_list_no_lig[b_factor]) - 1
 
                 plots.append(
-                    go.Scatter(x=self.prep_labels(model_no_lig.get_mass_labels()), y=dyna_sig_list_no_lig, mode='lines',
+                    go.Scatter(x=self.prep_labels(model_no_lig_mass_label), y=dyna_sig_list_no_lig, mode='lines',
                                name=f'Svib {svib_no_lig}'))
-                self.write_b_factor(filename, dyna_sig_list_no_lig, self.temp_path, model_no_lig.get_mass_labels())
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.nrgten_temp_path, model_no_lig_mass_label)
                 cmd.load(output_file[:-4] + '_dynasig.pdb')
                 cmd.spectrum(selection=filename + '_dynasig', palette='blue_white_red', expression='q', minimum=-1,
                              maximum=1)
@@ -288,10 +278,8 @@ class DynasigThread(QThread):
                 cmd.group('NRGTEN', filename + '_dynasig')
 
         else:
-            # completed_tasks = 0
-            # total_tasks = cmd.count_states(self.target_2)
             target_name = self.target_2
-            self.message_signal.emit(f"=========== Starting states ===========")
+            self.message_signal.emit(f"Starting states")
             states = range(cmd.count_states(self.target_2))
             state_file_list = []
             diff_list = []
@@ -302,62 +290,56 @@ class DynasigThread(QThread):
 
                 diff = compare_residues(target_file, output_file_state)
                 output_file_diff = os.path.join(self.nrgten_temp_path, f'{self.target_2}_{diff}.pdb')
+                if os.path.isfile(output_file_diff):
+                    os.remove(output_file_diff)
                 os.rename(output_file_state, output_file_diff)
                 state_file_list.append(output_file_diff)
                 diff_list.append(diff)
                 object_name = f'{self.target_2}_dynasigdif_{diff_list[state_counter]}'
                 object_list.append(object_name)
-            results = Parallel(n_jobs=-1)(delayed(self.process_state)(state, state_file_list[state], svib_ref, dyna_sig_list_ref,
+            results = Parallel(n_jobs=-1)(delayed(self.process_state)(state, state_file_list[state],
                                                                      list_het, self.temp_path, self.main_folder_path,
                                                                      self.beta) for state in states)
             b_fact_dictionary_list_no_lig = [result[0] for result in results]
             dyna_sig_list_list_no_lig = [result[1] for result in results]
-            model_list_no_lig = [result[2] for result in results]
+            model_list_no_lig_mass_label = [result[2] for result in results]
             svib_list_no_lig = [result[3] for result in results]
 
             for state in states:
-                b_fact_dictionary_no_lig = b_fact_dictionary_list_no_lig[state]
+                state_file= state_file_list[state]
+                _ = b_fact_dictionary_list_no_lig[state]
                 dyna_sig_list_no_lig = dyna_sig_list_list_no_lig[state]
-                model_no_lig = model_list_no_lig[state]
+                model_no_lig_mass_label = model_list_no_lig_mass_label[state]
                 svib_no_lig = svib_list_no_lig[state]
 
                 svib_list.append(svib_no_lig - svib_ref)
                 for b_factor in range(len(dyna_sig_list_no_lig)):
                     dyna_sig_list_no_lig[b_factor] = (dyna_sig_list_ref[b_factor] / dyna_sig_list_no_lig[b_factor]) - 1
-                if 'LIG.' in model_no_lig.get_mass_labels()[-1]:
+                if 'LIG.' in model_no_lig_mass_label[-1]:
                     dyna_sig_list_no_lig[-1] = 0
 
                 dyna_sig_list_no_lig = self.standardize_to_minus1_plus1(dyna_sig_list_no_lig)
 
-                filename = os.path.splitext(os.path.basename(target_file))[0]
-                plot = go.Scatter(x=self.prep_labels(model_list_no_lig[state].get_mass_labels()),
+                filename = os.path.splitext(os.path.basename(state_file))[0]
+                plot = go.Scatter(x=self.prep_labels(model_no_lig_mass_label),
                                   y=dyna_sig_list_no_lig, mode='lines',
                                   name=f'Diff {diff_list[state]}')
                 plots.append(plot)
+                self.write_b_factor(filename, dyna_sig_list_no_lig, self.nrgten_temp_path, model_no_lig_mass_label)
                 cmd.load(os.path.join(self.nrgten_temp_path, f'{filename}_dynasig.pdb'), object_list[state])
                 cmd.spectrum(selection=object_list[state], palette='blue_white_red', expression='q',
                              minimum=-1, maximum=1)
                 cmd.cartoon('putty', selection=object_list[state])
             self.create_group(f'{self.target_2}_dynasigdif', object_list)
             cmd.group('NRGTEN', f'{self.target_2}_dynasigdif')
-            #             object_list.append(object_name)
-            #         completed_tasks += 1
-            #         self.message_signal.emit(f"=========== Done {completed_tasks} ===========")
-            #         progress_percentage = int((completed_tasks / total_tasks) * 100)
-            #         # self.screen_progress_signal.emit(progress_percentage)
-            #     except Exception as e:
-            #         print(f"Error occurred: {e}")
-            #         traceback.print_exc()
         if self.is_running:
             fig = go.Figure()
 
-            # Add traces but set them to be initially invisible, except for the first one
             for i, plot in enumerate(plots):
                 fig.add_trace(plot)
                 if i != 0:
                     fig.data[i].visible = False
 
-            # Create buttons to toggle visibility of each trace and for showing all plots together
             buttons = []
             all_visible_button = dict(label="All Combined", method="update",
                                       args=[{"visible": [True for _ in range(len(plots))]}]
@@ -388,7 +370,6 @@ class DynasigThread(QThread):
 
             end_time = time.time()
             execution_time = end_time - start_time
-            self.message_signal.emit("=========== DynaSig ===========")
             self.message_signal.emit(f"Execution time: {execution_time:.4f} seconds")
             self.message_signal.emit('=========== END DynaSig ===========')
             self.finished_signal.emit()
