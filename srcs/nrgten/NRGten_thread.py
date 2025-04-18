@@ -9,6 +9,7 @@ from srcs.surfaces.run_Surfaces import create_ligand_file, compare_residues
 from nrgten.atom import Atom
 import subprocess
 from joblib import Parallel, delayed
+from general_functions import process_flexaid_result
 
 
 class DynasigManager:
@@ -218,6 +219,7 @@ class DynasigThread(QThread):
         plots = []
         svib_list = []
         cmd.save(target_file, self.target)
+        process_flexaid_result(target_file,target_file)
         list_het = self.find_het(target_file, self.main_folder_path)
         list_het = json.dumps(list_het)
         process_init_dynamic_signature = subprocess.Popen([sys.executable,
@@ -248,15 +250,17 @@ class DynasigThread(QThread):
             if self.lig != 'None':
                 output_file = os.path.join(self.nrgten_temp_path, f'no_lig_{self.target}.pdb')
                 self.remove_selection_and_save(self.target, self.lig, output_file)
+                list_het_no_lig = self.find_het(output_file, self.main_folder_path)
+                list_het_no_lig = json.dumps(list_het_no_lig)
                 p = subprocess.Popen([sys.executable, os.path.join(self.main_folder_path, 'srcs', 'nrgten','nrgten_separate.py'),
                                                                    '-t', output_file,
                                                                    '-b', self.beta,
                                                                    '-m', self.main_folder_path,
                                                                    '-te', self.temp_path,
-                                                                   '-l', list_het])
+                                                                   '-l', list_het_no_lig])
                 while self.is_running and p.poll() is None:
                     self.msleep(100)
-                pickle_file_path = os.path.splitext(target_file)[0] + '.pkl'
+                pickle_file_path = os.path.splitext(output_file)[0] + '.pkl'
                 with open(pickle_file_path, "rb") as f:
                     b_fact_dictionary_no_lig, dyna_sig_list_no_lig, model_no_lig_mass_label, svib_no_lig = pickle.load(f)
                 svib_list.append(svib_no_lig)
