@@ -16,9 +16,8 @@ from srcs.surfaces import run_Surfaces
 from srcs.isomif import run_isomif
 from srcs.nrgrank import nrgrank_smiles_management
 from srcs.nrgten.NRGten_thread import DynasigManager
-from srcs.nrgsuite_modeller.run_modeller import single_mutationManager
 from srcs.settings import run_settings
-from PyQt5.QtWidgets import QWidget, QTableWidget
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5.uic import loadUi
 from srcs.nrgten import run_NRGTEN
@@ -28,6 +27,7 @@ except ImportError:
     print('Modeller not installed.')
 else:
     from srcs.nrgsuite_modeller import run_modeller
+    from srcs.nrgsuite_modeller.run_modeller import single_mutationManager
 # TODO: when showing surfaces result hide everything else
 # TODO: clickable results in nrgrank table
 
