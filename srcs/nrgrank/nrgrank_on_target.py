@@ -236,7 +236,7 @@ class NRGRankThread(QThread):
         ligand_files = glob.glob(os.path.join(ligand_poses_folder, "*.pdb"))
         top_n_name_set = set(top_n_name_list)
         for file in ligand_files:
-            file_name = os.path.splitext(os.path.basename(file))[0].split('_')[0]
+            file_name = os.path.splitext(os.path.basename(file))[0]
             if file_name not in top_n_name_set:
                 os.remove(file)
         nrg_result_group_name = f"nrg_{binding_site_name}_{ligand_set_name}"

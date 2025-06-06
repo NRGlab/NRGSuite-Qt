@@ -109,7 +109,7 @@ class Controller:
         self.form.nrgrank_result_table.selectionModel().selectionChanged.connect(lambda: nrgrank_on_target.show_ligand_from_table(self.form.nrgrank_result_table, self.form.nrgrank_select_binding_site.currentText(), self.form.nrgrank_select_ligand.currentText()))
 
         # NRGRank ligand manager:
-        self.form.nrgrank_add_ligandset_button.clicked.connect(lambda: general_functions.folder_browser(self.form.nrgrank_add_ligand_file_path, self.ligand_set_folder_path, "Smiles Files (*.smi)"))
+        self.form.nrgrank_add_ligandset_button.clicked.connect(lambda: general_functions.folder_browser(self.form.nrgrank_add_ligand_file_path, self.ligand_set_folder_path, 'All Files (*)'))
         self.form.nrgrank_delete_ligand_set_refresh.clicked.connect(lambda: general_functions.refresh_folder(self.ligand_set_folder_path, self.form.nrgrank_delete_ligand_set_dropdown, ignore_defaults=True))
         self.form.nrgrank_ligand_set_delete.clicked.connect(lambda: nrgrank_smiles_management.delete_ligand_set(self.form.nrgrank_delete_ligand_set_dropdown.currentText(), self.ligand_set_folder_path, self.form.output_box))
         self.form.nrgrank_button_ligandset_add.clicked.connect(self.run_generate_conformers)
