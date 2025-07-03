@@ -38,7 +38,7 @@ def test_binary(binary_folder_path, operating_system):
         full_path = os.path.join(binary_folder_path, f)
         if os.path.isfile(full_path) and not f.startswith('.'):
             binary_files.append(full_path)
-    if operating_system == 'mac':
+    if operating_system == 'mac' or operating_system == 'linux':
         for file in binary_files:
             subprocess.run(["chmod", "755", file])
             if file.endswith('isomif'):
