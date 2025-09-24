@@ -104,6 +104,7 @@ def generate_color_scale(values, color_scale_range, color_scale):
 
 def color_distance(pair, value, color, selected_pairs,pdb_file):
     #create distance object
+    return
     distance_string = 'dashed_' + pair[0] + '-' + pair[1]
     type_res1, chain_res1, num_res1 = read_residue(pair[0])
     type_res2, chain_res2, num_res2 = read_residue(pair[1])
@@ -114,8 +115,7 @@ def color_distance(pair, value, color, selected_pairs,pdb_file):
     pymol.cmd.group(os.path.basename(pdb_file[:-4])+'_surfaces',distance_string)
     pymol.cmd.color(distance_string, distance_string)
     pymol.cmd.hide('labels', distance_string)
-    if pair not in selected_pairs:
-        pymol.cmd.disable(distance_string)
+    pymol.cmd.disable(distance_string)
     return
     
 def label_pairs(pair,selected_pairs,pdb_file):

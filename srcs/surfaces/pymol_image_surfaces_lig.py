@@ -122,7 +122,7 @@ def color_distance(pair, value, color, selected_pairs,pdb_file):
     pymol.cmd.set_color(distance_string, color)
     pymol.cmd.distance(distance_string, selection_string1, selection_string2)
     pymol.cmd.color(distance_string, distance_string)
-    pymol.cmd.group(os.path.basename(pdb_file[:-4]) + '_surfaces',distance_string)
+    pymol.cmd.group(os.path.basename(pdb_file[:-4]) + '_surfaces', distance_string)
     pymol.cmd.hide('labels', distance_string)
     if pair not in selected_pairs:
         pymol.cmd.disable(distance_string)
