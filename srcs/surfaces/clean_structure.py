@@ -22,18 +22,19 @@ def read_atom(line):
     chain = line[21:22].strip()
     return (atnum,attype,resnum,res,chain)
 
-def check_line(line,res,atoms): #see if the atom of that line is described in the def file
-    atnum,attype,resnum,residue,chain = read_atom(line)
+
+def check_line(line, res, atoms): #see if the atom of that line is described in the def file
+    atnum, attype, resnum, residue, chain = read_atom(line)
     if residue in res:
         id = res.index(residue)
         if attype in atoms[id]:
-            return (True)
+            return True, None
         else:
-            print ("WARNING: ATOM " + attype + " NOT DEFINED FOR " + residue)
-            return (False)
+            line = "WARNING: ATOM " + attype + " NOT DEFINED FOR " + residue
+            return False, line
     else:
-        print ("WARNING: " + residue + " NOT DEFINED")
-        return (False)
+        line = "WARNING: " + residue + " NOT DEFINED"
+        return False, line
 
 
 def get_args():
@@ -64,10 +65,15 @@ def main(pdb_file_path, atomtypes_definition_path, clean_pdb_file):
     
     pdb_file = open(pdb_file_path, "r")
     Lines = pdb_file.readlines()
+    warning_lines = []
     for line in Lines:
         if line[:4] == 'ATOM' or line[:4] == 'HETA':
-            if check_line(line,res,atoms):
+            line_check, warning = check_line(line, res, atoms)
+            if line_check:
                 clean_pdb_file.write(line)
+            elif warning not in warning_lines:
+                warning_lines.append(warning)
+                print(warning)
             
     pdb_file.close()
     clean_pdb_file.close()
