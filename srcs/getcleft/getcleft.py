@@ -85,6 +85,8 @@ class GetCleftWorker(QThread):
                 numbers = re.findall(r'\d+', filename)
                 new_file_name = f'bd_site_{numbers[-1]}.pdb'
                 new_bd_site_path = os.path.join(cleft_save_path, new_file_name)
+                if os.path.isfile(new_bd_site_path):
+                    os.remove(new_bd_site_path)
                 os.rename(file_path, new_bd_site_path)
                 file_data = {'path': new_bd_site_path, 'name': f"{self.pymol_object}_{new_file_name.split('.')[0]}"}
                 sph_file_list.append(file_data)
@@ -93,6 +95,9 @@ class GetCleftWorker(QThread):
         sph_file_list = sorted(sph_file_list, key=lambda d: d['name'])
         if len(sph_file_list) == 0:
             self.message_signal.emit('No clefts were found', 'warning')
+        cmd.group('GetCleft')
+        cmd.group(f"gc_{self.pymol_object}")
+        cmd.group('GetCleft', f"gc_{self.pymol_object}")
         for cleft_counter, binding_site in enumerate(sph_file_list):
             try:
                 cmd.load(binding_site['path'], binding_site['name'], state=1)
@@ -106,7 +111,6 @@ class GetCleftWorker(QThread):
             except Exception as e:
                 self.message_signal.emit(f"ERROR: Failed to load cleft object  {binding_site['name']}", 'warning')
                 continue
-        cmd.group('GetCleft', f"gc_{self.pymol_object}")
         cmd.zoom(pymol_object, buffer=4, complete=1)
         cmd.refresh()
         cmd.set("auto_zoom", auto_zoom)
